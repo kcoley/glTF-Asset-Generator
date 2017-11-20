@@ -47,5 +47,9 @@ namespace AssetGenerator.Runtime
         /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// The skin used in the node
+        /// </summary>
+        public Runtime.Skin Skin { get; set; }
     }
 }

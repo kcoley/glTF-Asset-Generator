@@ -24,6 +24,7 @@ namespace AssetGenerator.Runtime
         private static List<glTFLoader.Schema.Sampler> Samplers { get; set; } 
         private static List<glTFLoader.Schema.Texture> Textures { get; set; } 
         private static List<glTFLoader.Schema.Mesh> Meshes { get; set; }
+        private static List<glTFLoader.Schema.Skin> Skins { get; set; }
 
         /// <summary>
         /// Utility struct for holding sampler, image and texture coord indices
@@ -49,6 +50,7 @@ namespace AssetGenerator.Runtime
             Samplers = new List<glTFLoader.Schema.Sampler>();
             Textures = new List<glTFLoader.Schema.Texture>();
             Meshes = new List<glTFLoader.Schema.Mesh>();
+            Skins = new List<glTFLoader.Schema.Skin>();
     }
 
         /// <summary>
@@ -475,7 +477,7 @@ namespace AssetGenerator.Runtime
             {
                 node.Translation = runtimeNode.Translation.Value.ToArray();
             }
-            
+
             if (runtimeNode.Children != null)
             {
                 var childrenIndices = new List<int>();
@@ -485,6 +487,52 @@ namespace AssetGenerator.Runtime
                     childrenIndices.Add(schemaChildIndex);
                 }
                 node.Children = childrenIndices.ToArray();
+            }
+            if (runtimeNode.Skin != null)
+            {
+                // Inverse bind matrices
+                var ibms = runtimeNode.Skin.InverseBindMatrices.ToArray();
+                int? ibmAccessorIndex = null;
+                var skin = new glTFLoader.Schema.Skin();
+                foreach (var ibm in runtimeNode.Skin.InverseBindMatrices)
+                {
+                    // Store Inverse Bind Matrices in buffer and create bufferview and accessor
+                    int byteOffset = (int)geometryData.Writer.BaseStream.Position;
+                    var byteLength = runtimeNode.Skin.InverseBindMatrices.Count() * sizeof(float) * 16;
+
+                    foreach (var entry in ibm.ToArray())
+                    {
+                        geometryData.Writer.Write(entry);
+                    }
+                    var bufferView = CreateBufferView(bufferIndex, "Inverse Bind Matrices Buffer View", byteLength, byteOffset, null);
+                    BufferViews.Add(bufferView);
+                    int bufferviewIndex = BufferViews.Count() - 1;
+
+                    var accessor = CreateAccessor(bufferviewIndex, byteOffset, glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT, runtimeNode.Skin.InverseBindMatrices.Count(), "Inverse Bind Matrices Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.MAT4, null);
+                    Accessors.Add(accessor);
+                    ibmAccessorIndex = Accessors.Count() - 1;
+                }
+
+                if (ibmAccessorIndex.HasValue)
+                {
+                    // Store Skin in Node
+                    skin.InverseBindMatrices = ibmAccessorIndex;
+                    Skins.Add(skin);
+                    node.Skin = Skins.Count() - 1;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Failed to create Inverse Bind Matrices Accessor!");
+                }
+                var joints = new List<int>();
+                // Store joints in Skin
+                foreach (var joint in runtimeNode.Skin.Joints)
+                {
+                    var jointNodeIndex = ConvertNodeToSchema(joint, gltf, buffer, geometryData, bufferIndex);
+                    joints.Add(jointNodeIndex);
+
+                }
+                skin.Joints = joints.ToArray();
             }
 
             return nodeIndex;
@@ -563,7 +611,7 @@ namespace AssetGenerator.Runtime
                         morphTargetAttributes.Add("TANGENT", Accessors.Count() - 1);
                     }
                     morphTargetDicts.Add(new Dictionary<string, int>(morphTargetAttributes));
-                    weights.Add(meshPrimitive.morphTargetWeight);
+                    weights.Add(meshPrimitive.MorphTargetWeight);
                 }
             }
             return morphTargetDicts;
@@ -1033,6 +1081,24 @@ namespace AssetGenerator.Runtime
                         }
                         totalByteLength += WriteColors(meshPrimitive, i, i, geometryData);
                     }
+                    if (meshPrimitive.Joints != null)
+                    {
+                        int jointOffset = totalByteLength;
+                        glTFLoader.Schema.Accessor.ComponentTypeEnum? jointAccessorComponentType = null;
+                        switch(meshPrimitive.JointComponentType)
+                        {
+                            case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_BYTE:
+                                jointAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
+                                break;
+                            case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_SHORT:
+                                jointAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
+                                break;
+                            default:
+                                throw new InvalidEnumArgumentException("Unsupported joint enum component type " + meshPrimitive.JointComponentType);
+                        }
+                        var jointAccessor = CreateAccessor(bufferviewIndex, jointOffset, jointAccessorComponentType.Value, meshPrimitive.Joints.Count(), "Joint Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, null);
+                        totalByteLength += WriteJoints(meshPrimitive, i, i, geometryData);
+                    }
 
                     // Pad any additional bytes if byteLength is not a multiple of 4
                     int additionalPaddedBytes = Align(totalByteLength, 4) - totalByteLength;
@@ -1085,6 +1151,35 @@ namespace AssetGenerator.Runtime
                     break;
                 default: 
                     throw new NotImplementedException("Byte length calculation not implemented for TextureCoordsComponentType: " + meshPrimitive.TextureCoordsComponentType);
+            }
+            byteLength = (int)geometryData.Writer.BaseStream.Position - offset;
+
+            return byteLength;
+        }
+
+        private static int WriteJoints(MeshPrimitive meshPrimitive, int min, int max, Data geometryData)
+        {
+            int byteLength = 0;
+            int count = max - min + 1;
+            int vectorSize = 4;
+            int offset = (int)geometryData.Writer.BaseStream.Position;
+
+            switch (meshPrimitive.JointComponentType)
+            {
+                case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_BYTE:
+                    for (int i = min; i <= max; ++i)
+                    {
+                        geometryData.Writer.Write(Convert.ToByte(meshPrimitive.Joints[i].ToArray()));
+                    }
+                    break;
+                case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_SHORT:
+                    for (int i = min; i <= max; ++i)
+                    {
+                        geometryData.Writer.Write(Convert.ToUInt16(meshPrimitive.Joints[i].ToArray()));
+                    }
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException("Unsupported joint enum component type " + meshPrimitive.JointComponentType);
             }
             byteLength = (int)geometryData.Writer.BaseStream.Position - offset;
 
@@ -1270,6 +1365,13 @@ namespace AssetGenerator.Runtime
                         // Pad any additional bytes if byteLength is not a multiple of 4
                         int additionalPaddedBytes = Align(byteLength, 4) - byteLength;
                         Enumerable.Range(0, additionalPaddedBytes).ForEach(arg => geometryData.Writer.Write((byte)0));
+                    }
+                }
+                if (runtimeMeshPrimitive.Joints != null)
+                {
+                    for (int i = 0; i < runtimeMeshPrimitive.Joints.Count; ++i)
+                    {
+                        //TO FINISH
                     }
                 }
                 if (runtimeMeshPrimitive.TextureCoordSets != null)

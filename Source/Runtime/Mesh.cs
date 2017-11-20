@@ -21,5 +21,13 @@ namespace AssetGenerator.Runtime
         /// </summary>
         public List<MeshPrimitive> MeshPrimitives { get; set; }
 
+        /// <summary>
+        /// List of weights to be applied to the morph targets
+        /// </summary>
+        public List<float> Weights { get; set; }
+
+        public enum WeightComponentTypeEnum { FLOAT, NORMALIZED_BYTE, NORMALIZED_UNSIGNED_BYTE, NORMALIZED_SHORT, NORMALIZED_UNSIGNED_SHORT }
+
+        public WeightComponentTypeEnum WeightComponentType { get; set; }
     }
 }

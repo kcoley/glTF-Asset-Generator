@@ -98,7 +98,7 @@ namespace AssetGenerator.Runtime
         /// <summary>
         /// morph target weight (when the mesh primitive is used as a morph target)
         /// </summary>
-        public float morphTargetWeight { get; set; }
+        public float MorphTargetWeight { get; set; }
 
         public enum ModeEnum { POINTS, LINES, LINE_LOOP, LINE_STRIP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN };
 
@@ -107,5 +107,23 @@ namespace AssetGenerator.Runtime
         /// </summary>
         public ModeEnum? Mode { get; set; }
 
+        /// <summary>
+        /// Weights for the joints influence per vertex
+        /// </summary>
+        public List<float> Weights { get; set; }
+
+        /// <summary>
+        /// Influencing joints per vertex
+        /// </summary>
+        public List<Vector4> Joints { get; set; }
+
+        public enum JointComponentTypeEnum { UNSIGNED_BYTE, UNSIGNED_SHORT }
+
+        public JointComponentTypeEnum JointComponentType { get; set; }
+
+
+        public enum WeightComponentTypeEnum { FLOAT, NORMALIZED_UNSIGNED_BYTE, NORMALIZED_UNSIGNED_SHORT }
+
+        public WeightComponentTypeEnum WeightComponentType { get; set; }
     }
 }
