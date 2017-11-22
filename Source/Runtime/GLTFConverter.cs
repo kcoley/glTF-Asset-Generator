@@ -1098,6 +1098,7 @@ namespace AssetGenerator.Runtime
                         }
                         var jointAccessor = CreateAccessor(bufferviewIndex, jointOffset, jointAccessorComponentType.Value, meshPrimitive.Joints.Count(), "Joint Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, null);
                         totalByteLength += WriteJoints(meshPrimitive, i, i, geometryData);
+                        attributes.Add("JOINTS_0", Accessors.Count() - 1);
                     }
 
                     // Pad any additional bytes if byteLength is not a multiple of 4
@@ -1345,10 +1346,12 @@ namespace AssetGenerator.Runtime
                             colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
                             byteLength = sizeof(ushort) * vectorSize * runtimeMeshPrimitive.Colors.Count();
                             break;
-                        default: //Default to ColorComponentTypeEnum.FLOAT:
+                        case MeshPrimitive.ColorComponentTypeEnum.FLOAT:
                             colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
                             byteLength = sizeof(float) * vectorSize * runtimeMeshPrimitive.Colors.Count();   
                             break;
+                        default:
+                            throw new InvalidEnumArgumentException("Unsupported color component type " + runtimeMeshPrimitive.ColorComponentType);
                     }
                     var bufferView = CreateBufferView(bufferIndex, "Colors", byteLength, byteOffset, null);
                     BufferViews.Add(bufferView);
@@ -1369,10 +1372,59 @@ namespace AssetGenerator.Runtime
                 }
                 if (runtimeMeshPrimitive.Joints != null)
                 {
-                    for (int i = 0; i < runtimeMeshPrimitive.Joints.Count; ++i)
+                    glTFLoader.Schema.Accessor.ComponentTypeEnum? jointsAccessorComponentType = null;
+                    int byteOffset = (int)geometryData.Writer.BaseStream.Position;
+                    int byteLength = WriteJoints(runtimeMeshPrimitive, 0, runtimeMeshPrimitive.Joints.Count() - 1, geometryData);
+                    switch (runtimeMeshPrimitive.JointComponentType)
                     {
-                        //TO FINISH
+                        case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_BYTE:
+                            jointsAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
+                            break;
+                        case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_SHORT:
+                            jointsAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
+                            break;
+                        default:
+                            throw new InvalidEnumArgumentException("Unsupported joint component type " + runtimeMeshPrimitive.JointComponentType);
                     }
+
+                    var bufferView = CreateBufferView(bufferIndex, "Joints", byteLength, byteOffset, null);
+                    BufferViews.Add(bufferView);
+                    int bufferviewIndex = BufferViews.Count() - 1;
+                    var accessor = CreateAccessor(bufferviewIndex, 0, jointsAccessorComponentType, runtimeMeshPrimitive.Joints.Count(), "Joints Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, null);
+                    Accessors.Add(accessor);
+                    attributes.Add("JOINTS_0", Accessors.Count() - 1);
+
+                    // Pad any additional bytes if byteLength is not a multiple of 4
+                    int additionalPaddedBytes = Align(byteLength, 4) - byteLength;
+                    Enumerable.Range(0, additionalPaddedBytes).ForEach(arg => geometryData.Writer.Write((byte)0));
+                }
+                if (runtimeMeshPrimitive.Weights != null)
+                {
+                    glTFLoader.Schema.Accessor.ComponentTypeEnum? weightsAccessorComponentType = null;
+                    int byteOffset = (int)geometryData.Writer.BaseStream.Position;
+                    int byteLength = WriteWeights(runtimeMeshPrimitive, 0, runtimeMeshPrimitive.Weights.Count() - 1, geometryData);
+                    bool? normalized;
+                    switch(runtimeMeshPrimitive.JointComponentType)
+                    {
+                        case MeshPrimitive.JointComponentTypeEnum.FLOAT:
+                            weightsAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
+                            normalized = false;
+                            break;
+                        case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_BYTE:
+                            weightsAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
+                            normalized = true;
+                            break;
+                        case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_SHORT:
+                            weightsAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
+                            normalized = true;
+                            break;
+                        default:
+                            throw new InvalidEnumArgumentException("Unsupported weight component type " + runtimeMeshPrimitive.WeightComponentType);
+                    }
+                    var bufferView = CreateBufferView(bufferIndex, "Weights", byteLength, byteOffset, null);
+                    BufferViews.Add(bufferView);
+                    int bufferviewIndex = BufferViews.Count() - 1;
+                    var accessor = CreateAccessor(bufferviewIndex, 0, weightsAccessorComponentType, runtimeMeshPrimitive.Weights.Count(), "Weights Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, normalized);
                 }
                 if (runtimeMeshPrimitive.TextureCoordSets != null)
                 {
