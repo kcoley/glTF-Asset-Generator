@@ -35,7 +35,6 @@ export default class Renderer {
 
     createSceneSync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filename?: string, camPos?: BABYLON.Vector3, camRotation?: BABYLON.Quaternion) {
         this._canvas = canvas;
-
         this._engine = engine;
 
         // This creates a basic Babylon Scene object (non-mesh)
@@ -43,7 +42,7 @@ export default class Renderer {
 
         var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("assets/environment.dds", scene);
         let rotationMatrix = new BABYLON.Matrix();
-        const rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Vector3.Up(), Math.PI/2);// + Math.PI/4 + Math.PI/16 );
+        const rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Vector3.Up(), Math.PI / 2);// + Math.PI/4 + Math.PI/16 );
         BABYLON.Matrix.FromQuaternionToRef(rotationQuaternion, rotationMatrix);
         hdrTexture.setReflectionTextureMatrix(rotationMatrix);
         hdrTexture.gammaSpace = false;
@@ -52,19 +51,11 @@ export default class Renderer {
         this._scene = scene;
 
         camPos = new BABYLON.Vector3(0, 0, 1.3);
-        camRotation = (BABYLON.Quaternion.RotationAxis(BABYLON.Vector3.Up(), Math.PI));
 
-        if (camPos && camRotation) {
-            const freeCamera = new BABYLON.UniversalCamera("cam", camPos, scene);
+        let arcRotateCamera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 1, BABYLON.Vector3.Zero(), scene);
+        arcRotateCamera.setPosition(camPos);
+        this._camera = arcRotateCamera;
 
-            freeCamera.rotationQuaternion = camRotation;
-            this._camera = freeCamera;
-        }
-        else {
-
-            // This creates and positions a free camera (non-mesh)
-            this._camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 1.3, BABYLON.Vector3.Zero(), scene);
-        }
         // This attaches the camera to the canvas
         this._camera.attachControl(canvas, true);
 
@@ -78,33 +69,13 @@ export default class Renderer {
             this.addMeshToScene(filename);
         }
         else {
-            // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
-            const sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
-        const pbrMat = new BABYLON.PBRMaterial("pbrmat", scene);
-        pbrMat.metallic = 1.0;
-        pbrMat.roughness = 1.0;
-        sphere.material = pbrMat;
-
-            // Move the sphere upward 1/2 its height
-            sphere.position.y = 1;
-            sphere.position.z = -3;
-
-            // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-            const ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
+            BABYLON.Tools.Warn("No mesh loaded");
         }
-    }
-    convertArcRotateCameraToUniversalCamera(arcRotateCam: BABYLON.ArcRotateCamera) {
-        const radius = arcRotateCam.radius;
-        const alpha = arcRotateCam.alpha;
-        const beta = arcRotateCam.beta;
-
-        
-
     }
 
     createSceneAsync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filepath?: string, camPos?: BABYLON.Vector3, camRotation?: BABYLON.Quaternion): Promise<any> {
         const self = this;
-        
+
         return new Promise((resolve, reject) => {
             if (self._scene) {
                 self._scene.dispose();
@@ -119,16 +90,11 @@ export default class Renderer {
             scene.createDefaultSkybox(hdrTexture, true, 100, 0.0);
             self._scene = scene;
 
-            if (camPos && camRotation) {
-                const freeCamera = new BABYLON.UniversalCamera("freeCam", camPos, scene);
+            // This creates and positions a free camera (non-mesh)
+            const arcRotateCamera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 1, BABYLON.Vector3.Zero(), scene);
+            arcRotateCamera.setPosition(camPos);
+            self._camera = arcRotateCamera;
 
-                freeCamera.rotationQuaternion = camRotation;
-                self._camera = freeCamera;
-            }
-            else {
-                // This creates and positions a free camera (non-mesh)
-                self._camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 1.3, BABYLON.Vector3.Zero(), scene);
-            }
             // This attaches the camera to the canvas
             self._camera.attachControl(canvas, true);
 
@@ -166,17 +132,7 @@ export default class Renderer {
                 }
             }
             else {
-                // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
-                const sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, self._scene);
-
-                // Move the sphere upward 1/2 its height
-                sphere.position.y = 1;
-
-                // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-                const ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, self._scene);
-
-                resolve("createSceneAsync: created default scene");
-
+                reject("createSceneAsync: No filepath provided!");
             }
         });
     }
