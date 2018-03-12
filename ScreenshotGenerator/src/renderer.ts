@@ -42,7 +42,7 @@ export default class Renderer {
 
         var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("assets/environment.dds", scene);
         let rotationMatrix = new BABYLON.Matrix();
-        const rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Vector3.Up(), Math.PI / 2);// + Math.PI/4 + Math.PI/16 );
+        const rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Vector3.Up(), Math.PI / 2);
         BABYLON.Matrix.FromQuaternionToRef(rotationQuaternion, rotationMatrix);
         hdrTexture.setReflectionTextureMatrix(rotationMatrix);
         hdrTexture.gammaSpace = false;

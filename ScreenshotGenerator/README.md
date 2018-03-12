@@ -15,16 +15,18 @@ npm run build
 
 To execute the generator in interactive mode:
 
+
+Interactive Mode
 ```
 npm start
 ```
+
 Drag or use the arrow keys to reposition the camera
 
 L key - loads a new glTF/glb model
 S - takes a screenshot and saves to disk
 
-
-To run in headless mode:
+Headless Mode
 ```
 npm start -- headless=true manifest=../path/to/manifest/file
 ```

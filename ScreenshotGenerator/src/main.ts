@@ -53,6 +53,7 @@ function createWindow() {
   let gltf: string = "";
   let headless = false;
   let manifest = "";
+  let outputDirectory: string;
 
   const commandLineArgs = parseCommandLineArguments();
 
@@ -80,6 +81,10 @@ function createWindow() {
         headless = true;
         break;
       }
+      case 'outputDirectory': {
+        outputDirectory = commandLineArg.value;
+        break;
+      }
       case 'executable': {
         break;
       }
@@ -97,7 +102,7 @@ function createWindow() {
     height: height,
     width: width,
     useContentSize: true,
-    show: !headless
+    show: headless
   });
  
   mainWindow.setContentSize(width, height);
@@ -116,6 +121,9 @@ function createWindow() {
     }
     else if (arg === 'manifest') {
       event.returnValue = manifest;
+    }
+    else if (arg === 'outputDirectory') {
+      event.returnValue = outputDirectory;
     }
     else {
       console.log(arg);
