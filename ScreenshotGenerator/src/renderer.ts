@@ -102,7 +102,7 @@ export default class Renderer {
             const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
 
             // Default intensity is 1. Let's dim the light a small amount
-            light.intensity = 0.7;
+          //  light.intensity = 0.7;
 
             if (filepath) {
                 const fileURL = filepath.replace(/\\/g, '/');
@@ -137,7 +137,7 @@ export default class Renderer {
         });
     }
 
-    createSnapshotAsync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filename: string): Promise<any> {
+    createSnapshotAsync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filename: string, outputFolder: string, ms: number = 5000): Promise<any> {
         const self = this;
 
         return new Promise((resolve, reject) => {
@@ -150,7 +150,7 @@ export default class Renderer {
                 self.createScreenshot({ width: self._canvas.width, height: self._canvas.height }, function (base64Image: string) {
                     if (base64Image) {
                         base64Image = base64Image.replace(/^data:image\/png;base64,/, "");
-                        const filename = app.getPath('downloads') + '/screenshots/' + name;
+                        const filename = outputFolder + '/' + name;
                         fs.writeFile(filename, base64Image, 'base64', function (err: string) {
                             if (err) {
                                 reject("error happened: " + err);
@@ -165,16 +165,21 @@ export default class Renderer {
                     }
                 });
             });
+
+            setTimeout(() => {
+                reject(`createSnapshotAsync: Promise timed out after ${ms} ms.`);
+            }, ms);
         });
     }
 
-    async createSnapshotsAsync(glTFAssets: IGLTFAsset[], canvas: HTMLCanvasElement, engine: BABYLON.Engine) {
+    async createSnapshotsAsync(glTFAssets: IGLTFAsset[], canvas: HTMLCanvasElement, engine: BABYLON.Engine, outputDirectory: string) {
         let snapshotPromiseChain: Promise<any> = null;
-        const folder = fs.mkdir(app.getPath('downloads') + "/screenshots");
+        const folder = outputDirectory + "/screenshots";
+        fs.mkdirSync(folder);
         for (let i = 0; i < glTFAssets.length; ++i) {
             try {
                 const r = await this.createSceneAsync(canvas, engine, glTFAssets[i].filepath, glTFAssets[i].camera.translation, glTFAssets[i].camera.rotation);
-                const result = await this.createSnapshotAsync(canvas, engine, glTFAssets[i].filepath);
+                const result = await this.createSnapshotAsync(canvas, engine, glTFAssets[i].filepath, folder);
             }
             catch (err) {
                 con.log("Failed to create snapshot: " + err);
@@ -190,6 +195,7 @@ export default class Renderer {
         runHeadless = ipcRenderer.sendSync('synchronous-message', 'headless');
         gltf = ipcRenderer.sendSync('synchronous-message', 'gltf');
         let manifest = ipcRenderer.sendSync('synchronous-message', 'manifest');
+        let outputDirectory = ipcRenderer.sendSync('synchronous-message', 'outputDirectory');
         const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true });
         let glTFAssets: IGLTFAsset[] = null;
 
@@ -197,9 +203,8 @@ export default class Renderer {
             glTFAssets = this.loadManifestFile2(manifest);
         }
 
-
         if (runHeadless) {
-            this.createSnapshotsAsync(glTFAssets, canvas, engine);
+            this.createSnapshotsAsync(glTFAssets, canvas, engine, outputDirectory);
         }
         else {
             this.createSceneSync(canvas, engine);
@@ -217,43 +222,6 @@ export default class Renderer {
 
     convertToURL(filePath: string): string {
         return filePath.replace(/\\/g, '/');
-    }
-
-    /**
-     * Get all the gltf assets of a manifest file.
-     * @param manifesFile 
-     */
-    loadManifestFile(manifestJSON: string): string[] {
-        const rootDirectory = BABYLON.Tools.GetFolderPath(this.convertToURL(manifestJSON));
-        const result: string[] = [];
-
-        const content = fs.readFileSync(manifestJSON);
-        // open the manifest file
-        const jsonData = JSON.parse(content);
-
-        if ('files' in jsonData) {
-            BABYLON.Tools.Log("Files present");
-            for (let file of jsonData['files']) {
-                result.push(rootDirectory + file);
-            }
-        }
-        else {
-
-            for (let i = 0; i < jsonData.length; ++i) {
-                const jsonObj = jsonData[i];
-                const directory = jsonObj.folder;
-                const files = jsonObj.files;
-                const folder = jsonObj.folder;
-                const camera = jsonObj.camera;
-
-                for (const file of files) {
-                    result.push(rootDirectory + folder + "/" + file);
-                }
-            }
-        }
-
-        // for each gltf asset in the file, add to the list
-        return result;
     }
 
     createGLTFAsset(model: any, rootDirectory: string): IGLTFAsset {
