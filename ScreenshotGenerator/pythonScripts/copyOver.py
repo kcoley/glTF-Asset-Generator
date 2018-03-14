@@ -25,7 +25,10 @@ def copyImagesOver(manifest, source_dir, thumbnails_dir):
             target_image_path = os.path.join(
                 target_sample_image_dir, image_filename)
 
-            if os.path.isfile(source_image_path) and os.path.isdir(target_sample_image_dir):
+            if os.path.isfile(source_image_path):
+                if not os.path.isdir(target_sample_image_dir):
+                    os.makedirs(target_sample_image_dir)
+
                 print(source_image_path + ' --> ' + target_image_path + '\n')
                 shutil.copy(source_image_path, target_image_path)
                 copied_index = copied_index + 1
@@ -35,7 +38,10 @@ def copyImagesOver(manifest, source_dir, thumbnails_dir):
             target_thumbnail_image_path = os.path.join(
                 target_thumbnail_image_dir, image_filename)
 
-            if os.path.isfile(source_thumbnail_image_path) and os.path.isdir(target_thumbnail_image_dir):
+            if os.path.isfile(source_thumbnail_image_path):
+                if not os.path.isdir(target_thumbnail_image_dir):
+                    os.makedirs(target_thumbnail_image_dir)
+
                 print(source_thumbnail_image_path +
                       ' --> ' + target_thumbnail_image_path + '\n')
                 shutil.copy(source_thumbnail_image_path, target_thumbnail_image_path)
