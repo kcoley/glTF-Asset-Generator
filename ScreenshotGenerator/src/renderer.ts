@@ -15,8 +15,7 @@ const { app } = remote;
 const { ipcRenderer } = require('electron');
 
 interface ICamera {
-    translation: BABYLON.Vector3,
-    rotation: BABYLON.Quaternion
+    translation: BABYLON.Vector3
 };
 
 interface IGLTFAsset {
@@ -31,49 +30,8 @@ export default class Renderer {
     private _engine: BABYLON.Engine;
     private _scene: BABYLON.Scene;
     private _camera: BABYLON.Camera;
-    private disabled: boolean;
 
-    createSceneSync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filename?: string, camPos?: BABYLON.Vector3, camRotation?: BABYLON.Quaternion) {
-        this._canvas = canvas;
-        this._engine = engine;
-
-        // This creates a basic Babylon Scene object (non-mesh)
-        const scene = new BABYLON.Scene(engine);
-
-        var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("assets/environment.dds", scene);
-        let rotationMatrix = new BABYLON.Matrix();
-        const rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Vector3.Up(), Math.PI / 2);
-        BABYLON.Matrix.FromQuaternionToRef(rotationQuaternion, rotationMatrix);
-        hdrTexture.setReflectionTextureMatrix(rotationMatrix);
-        hdrTexture.gammaSpace = false;
-        const skybox = scene.createDefaultSkybox(hdrTexture, true, 100, 0.0);
-        skybox.rotationQuaternion = rotationQuaternion;
-        this._scene = scene;
-
-        camPos = new BABYLON.Vector3(0, 0, 1.3);
-
-        let arcRotateCamera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 1, BABYLON.Vector3.Zero(), scene);
-        arcRotateCamera.setPosition(camPos);
-        this._camera = arcRotateCamera;
-
-        // This attaches the camera to the canvas
-        this._camera.attachControl(canvas, true);
-
-        // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-        const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
-
-        // Default intensity is 1. Let's dim the light a small amount
-        light.intensity = 0.7;
-
-        if (filename) {
-            this.addMeshToScene(filename);
-        }
-        else {
-            BABYLON.Tools.Warn("No mesh loaded");
-        }
-    }
-
-    createSceneAsync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filepath?: string, camPos?: BABYLON.Vector3, camRotation?: BABYLON.Quaternion): Promise<any> {
+    createSceneAsync(canvas: HTMLCanvasElement, engine: BABYLON.Engine, filepath?: string, camPos?: BABYLON.Vector3): Promise<any> {
         const self = this;
 
         return new Promise((resolve, reject) => {
@@ -85,24 +43,17 @@ export default class Renderer {
 
             // This creates a basic Babylon Scene object (non-mesh)
             const scene = new BABYLON.Scene(engine);
+            scene.createDefaultCameraOrLight(true, true, true);
+            const arcRotateCamera = scene.activeCamera as BABYLON.ArcRotateCamera;
+            arcRotateCamera.setPosition(camPos);
+            self._camera = arcRotateCamera;
             var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("assets/environment.dds", scene);
             hdrTexture.gammaSpace = false;
             scene.createDefaultSkybox(hdrTexture, true, 100, 0.0);
             self._scene = scene;
 
-            // This creates and positions a free camera (non-mesh)
-            const arcRotateCamera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 1, BABYLON.Vector3.Zero(), scene);
-            arcRotateCamera.setPosition(camPos);
-            self._camera = arcRotateCamera;
-
-            // This attaches the camera to the canvas
-            self._camera.attachControl(canvas, true);
-
             // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
             const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
-
-            // Default intensity is 1. Let's dim the light a small amount
-          //  light.intensity = 0.7;
 
             if (filepath) {
                 const fileURL = filepath.replace(/\\/g, '/');
@@ -174,12 +125,11 @@ export default class Renderer {
 
     async createSnapshotsAsync(glTFAssets: IGLTFAsset[], canvas: HTMLCanvasElement, engine: BABYLON.Engine, outputDirectory: string) {
         let snapshotPromiseChain: Promise<any> = null;
-        const folder = outputDirectory + "/screenshots";
-        fs.mkdirSync(folder);
+
         for (let i = 0; i < glTFAssets.length; ++i) {
             try {
-                const r = await this.createSceneAsync(canvas, engine, glTFAssets[i].filepath, glTFAssets[i].camera.translation, glTFAssets[i].camera.rotation);
-                const result = await this.createSnapshotAsync(canvas, engine, glTFAssets[i].filepath, folder);
+                const r = await this.createSceneAsync(canvas, engine, glTFAssets[i].filepath, glTFAssets[i].camera.translation);
+                const result = await this.createSnapshotAsync(canvas, engine, glTFAssets[i].filepath, outputDirectory);
             }
             catch (err) {
                 con.log("Failed to create snapshot: " + err);
@@ -200,14 +150,17 @@ export default class Renderer {
         let glTFAssets: IGLTFAsset[] = null;
 
         if (manifest) {
-            glTFAssets = this.loadManifestFile2(manifest);
+            glTFAssets = this.loadManifestFile(manifest);
         }
 
         if (runHeadless) {
+            if (!fs.existsSync(outputDirectory)) {
+                fs.mkdirSync(outputDirectory);
+            }
             this.createSnapshotsAsync(glTFAssets, canvas, engine, outputDirectory);
         }
         else {
-            this.createSceneSync(canvas, engine);
+            this.createSceneAsync(canvas, engine, null, new BABYLON.Vector3(0, 0, 1.3));
             canvas.addEventListener("keyup", this.onKeyUp.bind(this));
             engine.runRenderLoop(() => {
                 this._scene.render();
@@ -228,8 +181,7 @@ export default class Renderer {
         BABYLON.Tools.Log("Models present");
 
         const camera: ICamera = {
-            translation: BABYLON.Vector3.FromArray([model.camera.translation[0], model.camera.translation[1], -model.camera.translation[2]]),
-            rotation: BABYLON.Quaternion.FromArray([-model.camera.rotation[0], -model.camera.rotation[1], model.camera.rotation[2], model.camera.rotation[3]])
+            translation: BABYLON.Vector3.FromArray(model.camera.translation),
         }
 
         const asset: IGLTFAsset = {
@@ -246,7 +198,7 @@ export default class Renderer {
      * Get all the gltf assets of a manifest file.
      * @param manifesFile 
      */
-    loadManifestFile2(manifestJSON: string): IGLTFAsset[] {
+    loadManifestFile(manifestJSON: string): IGLTFAsset[] {
         const rootDirectory = BABYLON.Tools.GetFolderPath(this.convertToURL(manifestJSON));
         const result: IGLTFAsset[] = [];
 
@@ -285,16 +237,6 @@ export default class Renderer {
 
             const addMeshPromise = new Promise(function (resolve, reject) {
                 BABYLON.SceneLoader.ImportMesh("", rootDirectory, sceneFileName, self._scene, function (meshes) {
-                    let root: BABYLON.AbstractMesh = new BABYLON.Mesh("root", self._scene);
-
-                    for (const mesh of meshes) {
-                        if (!mesh.parent) {
-                            mesh.parent = root;
-                        }
-                    }
-                    root.position = new BABYLON.Vector3(0, 0, 0);
-                    root.rotation = new BABYLON.Vector3(0, 0, 0);
-
                     BABYLON.Tools.Log("Loaded Model");
                     resolve("loaded model: " + fileURL);
                 }, null, function (scene, message, exception) {
@@ -308,8 +250,6 @@ export default class Renderer {
                 con.error("Failed: " + error);
                 throw Error("Failed = " + error);
             });
-
-
         }
         else {
             con.log("file not found");
@@ -328,14 +268,9 @@ export default class Renderer {
             dialog.showOpenDialog({ properties: ['openFile'] }, function (filePaths) {
                 if (filePaths && filePaths.length) {
                     self._scene.dispose();
-                    self.createSceneSync(self._canvas, self._engine, filePaths[0]);
+                    self.createSceneAsync(self._canvas, self._engine, filePaths[0], new BABYLON.Vector3(0, 0, 1.3));
                 }
             });
-        }
-        if (event.key == 'i' || event.key == 'I') {
-            BABYLON.Tools.Log("logging cam position");
-            BABYLON.Tools.Log("position = " + this._camera.position);
-            BABYLON.Tools.Log("rotation = " + (this._camera as BABYLON.FreeCamera).rotationQuaternion);
         }
     }
 

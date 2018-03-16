@@ -42,37 +42,57 @@ function parseCommandLineArguments(): ICommandLineArguments[] {
 }
 
 function validateCommandLineArguments(commandLineArgs: ICommandLineArguments[]): boolean {
-  let valid = true;
+  let hasManifest = false;
+  let hasOutputDirectory = false;
+  let isHeadless = false;
   for (let commandLineArg of commandLineArgs) {
     if (commandLineArg.key === 'width') {
       if (isNaN(parseInt(commandLineArg.value))) {
         console.error(`width variable ${commandLineArg.value} is not a number!`);
-        valid = false;
+        return false;
       }
     }
     if (commandLineArg.key === 'height') {
       if (isNaN(parseInt(commandLineArg.value))) {
         console.error(`height variable ${commandLineArg.value} is not a number!`);
-        valid = false;
+        return false;
       }
     }
     if (commandLineArg.key === 'outputDirectory') {
-      if (!fs.existsSync(commandLineArg.value)) {
+      console.log("here");
+      const parentDir = path.dirname(commandLineArg.value);
+
+      
+      console.log("parentdir = " + parentDir);
+      if (fs.existsSync(parentDir)) {
+        hasOutputDirectory = true;
+      }
+      else {
         console.error(`output directory ${commandLineArg.value} does not exist!`);
-        valid = false;
+        return false;
 
       }
     }
     if (commandLineArg.key === 'manifest') {
-      if (!fs.existsSync(commandLineArg.value)) {
+      if (fs.existsSync(commandLineArg.value)) {
+        hasManifest = true;
+      }
+      else {
         console.error(`manifest file ${commandLineArg.value} does not exist!`);
-        valid = false;
+        return false;
       }
     }
-
+    if (commandLineArg.key === 'headless') {
+      isHeadless = true;
+    }
   }
 
-  return valid;
+  if (!(hasOutputDirectory && hasManifest)) {
+    console.error(`manifest file and/or output directory are missing!`);
+    return false;
+  }
+
+  return true;
 }
 
 function createWindow() {
