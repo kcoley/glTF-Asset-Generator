@@ -12,10 +12,16 @@ def copyImagesOver(manifest, source_dir, thumbnails_dir):
     manifest_data = json.load(open(manifest))
     for folder_model_entry in manifest_data:
         folder_name = folder_model_entry['folder']
-        target_sample_image_dir = os.path.join(
-            target_root_dir, folder_name, 'SampleImages')
+        
+        figures_dir = os.path.join(
+            target_root_dir, folder_name, 'Figures'
+        )
+        
+        target_sample_image_dir = os.path.join(figures_dir, 'SampleImages')
+        
         target_thumbnail_image_dir = os.path.join(
-            target_root_dir, folder_name, 'Thumbnails')
+            figures_dir, 'Thumbnails'
+        )
 
         for i in range(0, len(folder_model_entry['models'])):
             image_filename = folder_model_entry['models'][i]['fileName'].replace(
