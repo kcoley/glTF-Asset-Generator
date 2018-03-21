@@ -1,0 +1,82 @@
+{
+    "properties": {
+        "wrapTClampToEdge": "WrapTEnum.CLAMP_TO_EDGE",
+        "wrapTMirroredRepeat": "WrapTEnum.MIRRORED_REPEAT",
+        "wrapSClampToEdge": "WrapSEnum.CLAMP_TO_EDGE",
+        "wrapSMirroredRepeat": "WrapSEnum.MIRRORED_REPEAT",
+        "magFilterNearest": "MagFilterEnum.NEAREST"
+    },
+    "models": [
+        {
+            "properties": []
+        },
+        {
+            "properties": [
+                "wrapTClampToEdge"
+            ]
+        },
+        {
+            "properties": [
+                "wrapTMirroredRepeat"
+            ]
+        },
+        {
+            "properties": [
+                "wrapSClampToEdge"
+            ]
+        },
+        {
+            "properties": [
+                "wrapSMirroredRepeat"
+            ]
+        },
+        {
+            "properties": [
+                "magFilterNearest"
+            ]
+        },
+        {
+            "properties": [
+                "wrapFilterLinear"
+            ]
+        },
+        {
+            "properties": [
+                "minFilterNearest"
+            ]
+        },
+        {
+            "properties": [
+                "minFilterLinear"
+            ]
+        },
+        {
+            "properties": [
+                "minFilterNearestMipmapNearest"
+            ]
+        },
+        {
+            "properties": [
+                "minFilterLinearMipmapNearest"
+            ]
+        },
+        {
+            "properties": [
+                "minFilterNearestMipmapLinear"
+            ]
+        },
+        {
+            "properties": [
+                "minFilterLinearMipmapLinear"
+            ]
+        },
+        {
+            "properties": [
+                "wrapTClampToEdge",
+                "wrapSClampToEdge",
+                "magFilterNearest",
+                "minFilterNearest"
+            ]
+        }
+    ]
+}
