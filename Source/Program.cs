@@ -19,8 +19,9 @@ namespace AssetGenerator
                 foreach (var file in modelGroupFiles)
                 {
                     Console.WriteLine(file);
-                    var models = GetModelsFromModelGroupManifest(file);
-                    var readme = GetReadmeFromModelGroupManifest(file);
+                    ModelGenerator generator = new ModelGenerator(file);
+                  //  var models = GetModelsFromModelGroupManifest(file);
+                   // var readme = GetReadmeFromModelGroupManifest(file);
                 }
             }
             else

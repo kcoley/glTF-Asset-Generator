@@ -20,7 +20,7 @@ namespace AssetGenerator
             if (json.TryGetValue("geometry", out value))
             {
                 var geometryName = value.ToString();
-                switch(geometryName)
+                switch (geometryName)
                 {
                     case "SinglePlane":
                         return Common.SinglePlane();
@@ -37,7 +37,7 @@ namespace AssetGenerator
         }
         public ModelGenerator(string manifestURL)
         {
-            var json = JObject.Parse(manifestURL);
+            var json = JObject.Parse(File.ReadAllText(manifestURL));
             var asset = InitializeGeometry(json);
             AddRequiredPropertiesToAsset(json, asset);
 
@@ -54,36 +54,36 @@ namespace AssetGenerator
                 {
                     if (json.TryGetValue("requiredProperties", out requiredProperties))
                     {
-                        foreach(var property in requiredProperties)
+                        foreach (var property in requiredProperties)
                         {
                             var entry = properties[property];
                             var mappingIndex = (entry["mapping"] != null) ? entry["mapping"] : 0;
                             var mapping = mappings[mappingIndex];
                             var propertyName = property.ToObject<string>();
-                            switch(propertyName)
+                            switch (propertyName)
                             {
                                 case "metallicFactor":
-                                    {
-                                        var sceneIndex = mapping["scene"].ToObject<int>();
-                                        var nodeIndex = mapping["node"].ToObject<int>();
-                                        var meshPrimitiveIndex = mapping["meshPrimitive"].ToObject<int>();
-                                        asset.Scenes[sceneIndex].Nodes[nodeIndex].Mesh.MeshPrimitives[meshPrimitiveIndex].Material.MetallicRoughnessMaterial.MetallicFactor = entry["value"].ToObject<int>();
-                                        break;
-                                    }
+                                {
+                                    var sceneIndex = mapping["scene"].ToObject<int>();
+                                    var nodeIndex = mapping["node"].ToObject<int>();
+                                    var meshPrimitiveIndex = mapping["meshPrimitive"].ToObject<int>();
+                                    asset.Scenes[sceneIndex].Nodes[nodeIndex].Mesh.MeshPrimitives[meshPrimitiveIndex].Material.MetallicRoughnessMaterial.MetallicFactor = entry["value"].ToObject<int>();
+                                    break;
+                                }
                                 default:
                                     throw new NotImplementedException(String.Format("propertyName {0} not implemented yet!", propertyName));
                                 case "baseColorFactor":
-                                    {
-                                        var sceneIndex = mapping["scene"].ToObject<int>();
-                                        var nodeIndex = mapping["node"].ToObject<int>();
-                                        var meshPrimitiveIndex = mapping["meshPrimitive"].ToObject<int>();
-                                        asset.Scenes[sceneIndex].Nodes[nodeIndex].Mesh.MeshPrimitives[meshPrimitiveIndex].Material.MetallicRoughnessMaterial.BaseColorFactor = entry["value"].ToObject<Vector4>();
-                                        break;
-                                    }
+                                {
+                                    var sceneIndex = mapping["scene"].ToObject<int>();
+                                    var nodeIndex = mapping["node"].ToObject<int>();
+                                    var meshPrimitiveIndex = mapping["meshPrimitive"].ToObject<int>();
+                                    asset.Scenes[sceneIndex].Nodes[nodeIndex].Mesh.MeshPrimitives[meshPrimitiveIndex].Material.MetallicRoughnessMaterial.BaseColorFactor = entry["value"].ToObject<Vector4>();
+                                    break;
+                                }
                             }
                         }
                     }
-                }   
+                }
             }
         }
 
@@ -93,7 +93,7 @@ namespace AssetGenerator
             if (json.TryGetValue("models", out value))
             {
                 var models = value.Children();
-                foreach(var model in models)
+                foreach (var model in models)
                 {
 
                 }
@@ -105,9 +105,9 @@ namespace AssetGenerator
         }
         private static void ModifyGeometry(Runtime.MeshPrimitive meshPrimitive, Dictionary<string, MGProperty> properties)
         {
-           foreach(var kvp in properties)
+            foreach (var kvp in properties)
             {
-                switch(kvp.Key)
+                switch (kvp.Key)
                 {
                     case "normals":
                         var normals = kvp.Value.GetVectors();
@@ -119,7 +119,7 @@ namespace AssetGenerator
         }
         private static void ModifyMaterial(Runtime.Asset asset, Dictionary<string, MGProperty> properties)
         {
-            
+
         }
 
         public static void CreateModelWithProperties(Dictionary<string, MGProperty> properties)
@@ -135,7 +135,7 @@ namespace AssetGenerator
                 // }
             };
 
-            ModifyGeometry(asset, properties);
+          //  ModifyGeometry(asset, properties);
             ModifyMaterial(asset, properties);
         }
     }
