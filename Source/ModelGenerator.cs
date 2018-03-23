@@ -22,7 +22,7 @@ namespace AssetGenerator
 
         private Runtime.GLTF InitializeGeometry(Object json)
         {
-            var geometryInfo = json["geometry"].Value;
+            var geometryInfo = json.geometry.Value;
         }
         public ModelGenerator(string manifestURL)
         {
