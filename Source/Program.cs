@@ -10,6 +10,26 @@ namespace AssetGenerator
     {
         private static void Main(string[] args)
         {
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var modelGroupJSONDirectory = Path.Combine(currentDirectory, "Resources", "ModelGroups");
+            if (Directory.Exists(modelGroupJSONDirectory))
+            {
+                var modelGroupFiles = Directory.GetFiles(modelGroupJSONDirectory, "*.json");
+                Console.WriteLine(modelGroupFiles);
+                foreach (var file in modelGroupFiles)
+                {
+                    Console.WriteLine(file);
+                    var models = GetModelsFromModelGroupManifest(file);
+                    var readme = GetReadmeFromModelGroupManifest(file);
+                }
+            }
+            else
+            {
+                throw new IOException(String.Format("Model group resource directory is not found {0}", modelGroupJSONDirectory));
+            }
+        }
+        private static void Main2(string[] args)
+        {
             Stopwatch.StartNew();
 
             Assembly executingAssembly = Assembly.GetExecutingAssembly();
@@ -46,7 +66,7 @@ namespace AssetGenerator
                 ReadmeBuilder readme = new ReadmeBuilder();
                 modelGroup.id = modelGroupIndex++;
                 Manifest manifest = new Manifest(modelGroup.modelGroupName);
-              
+
                 string assetFolder = Path.Combine(outputFolder, modelGroup.modelGroupName.ToString());
 
                 FileHelper.ClearOldFiles(outputFolder, assetFolder);

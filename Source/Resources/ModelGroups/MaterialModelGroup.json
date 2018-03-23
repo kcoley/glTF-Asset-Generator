@@ -1,107 +1,129 @@
 {
-    "description": "These models are intended to test the various properties that can be set on a material.",
-    "properties": {
-        "metallicFactor": 0.0,
-        "baseColorFactor": [
-            0.2,
-            0.2,
-            0.2
-        ],
-        "normalTexture": "normalTexture",
-        "normalTextureScale": 10.0,
-        "occlusionTexture": "occlusionTexture",
-        "occlusionTextureStrength": 0.5,
-        "emissiveTexture": "emissiveTexture",
-        "emissiveFactor": [
-            1.0,
-            1.0,
-            1.0
-        ],
-        "normals": [
-            [
-                0.0,
-                0.0,
-                1.0
-            ],
-            [
-                0.0,
-                0.0,
-                1.0
-            ],
-            [
-                0.0,
-                0.0,
-                1.0
-            ],
-            [
-                0.0,
-                0.0,
-                1.0
-            ]
+  "name": "Material",
+  "description": "These models are intended to test the various properties that can be set on a material.",
+  "geometry": {
+    "scenes": [
+      [
+        0
+      ]
+    ],
+    "nodes": [
+      {
+        "mesh": 0
+      }
+    ],
+    "meshes": [
+      {
+        "meshPrimitives": [
+          {
+
+          }
         ]
+      }
+    ]
+  },
+  "properties": {
+    "metallicFactor": 0.0,
+    "baseColorFactor": [
+      0.2,
+      0.2,
+      0.2
+    ],
+    "normalTexture": "normalTexture",
+    "normalTextureScale": 10.0,
+    "occlusionTexture": "occlusionTexture",
+    "occlusionTextureStrength": 0.5,
+    "emissiveTexture": "emissiveTexture",
+    "emissiveFactor": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "normals": [
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "figures": [],
+  "requiredProperties": [
+    "metallicFactor",
+    "baseColorFactor"
+  ],
+  "models": [
+    {
+      "properties": []
     },
-    "figures": [],
-    "requiredProperties": [
-        "metallicFactor",
-        "baseColorFactor"
-    ],
-    "models": [
-        {
-            "properties": []
-        },
-        {
-            "properties": [
-                "normalTexture",
-                "normals"
-            ]
-        },
-        {
-            "properties": [
-                "occlusionTexture"
-            ]
-        },
-        {
-            "properties": [
-                "emissiveFactor"
-            ]
-        },
-        {
-            "properties": [
-                "normalTexture",
-                "normalTextureScale",
-                "normals"
-            ]
-        },
-        {
-            "properties": [
-                "occlusionTexture",
-                "occlusionTextureStrength"
-            ]
-        },
-        {
-            "properties": [
-                "emissiveTexture",
-                "emissiveFactor"
-            ]
-        },
-        {
-            "properties": [
-                "normalTexture",
-                "normalTextureScale",
-                "normals",
-                "occlusionTexture",
-                "occlusionTextureStrength",
-                "emissiveTexture",
-                "emissiveFactor"
-            ]
-        }
-    ],
-    "readmeHeaderOrder": {
-        "normalTexture": "Normal Texture",
-        "normalTextureScale": "Normal Texture Scale",
-        "occlusionTexture": "Occlusion Texture",
-        "occlusionTextureStrength": "Occlusion Texture Strength",
-        "emissiveTexture": "Emissive Texture",
-        "emissiveFactor": "Emissive Factor"
+    {
+      "properties": [
+        "normalTexture",
+        "normals"
+      ]
+    },
+    {
+      "properties": [
+        "occlusionTexture"
+      ]
+    },
+    {
+      "properties": [
+        "emissiveFactor"
+      ]
+    },
+    {
+      "properties": [
+        "normalTexture",
+        "normalTextureScale",
+        "normals"
+      ]
+    },
+    {
+      "properties": [
+        "occlusionTexture",
+        "occlusionTextureStrength"
+      ]
+    },
+    {
+      "properties": [
+        "emissiveTexture",
+        "emissiveFactor"
+      ]
+    },
+    {
+      "properties": [
+        "normalTexture",
+        "normalTextureScale",
+        "normals",
+        "occlusionTexture",
+        "occlusionTextureStrength",
+        "emissiveTexture",
+        "emissiveFactor"
+      ]
     }
+  ],
+  "readmeHeaderOrder": {
+    "normalTexture": "Normal Texture",
+    "normalTextureScale": "Normal Texture Scale",
+    "occlusionTexture": "Occlusion Texture",
+    "occlusionTextureStrength": "Occlusion Texture Strength",
+    "emissiveTexture": "Emissive Texture",
+    "emissiveFactor": "Emissive Factor"
+  }
 }
