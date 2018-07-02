@@ -109,7 +109,16 @@ namespace AssetGenerator
         {
             values.ForEach(value => writer.Write(value));
         }
-        
+
+        public static void Write(this BinaryWriter writer, IEnumerable<byte> values)
+        {
+            values.ForEach(value => writer.Write(value));
+        }
+
+        public static void Write(this BinaryWriter writer, IEnumerable<ushort> values)
+        {
+            values.ForEach(value => writer.Write(value));
+        }
     }
 
     internal static class EnumerableExtensions

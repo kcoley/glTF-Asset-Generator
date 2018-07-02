@@ -75,7 +75,7 @@ namespace AssetGenerator
                     {
                         // Passes the desired properties to the runtime layer, which then coverts that data into
                         // a gltf loader object, ready to create the model
-                        var converter = new Runtime.GLTFConverter { CreateInstanceOverride = model.CreateSchemaInstance };
+                        var converter = new Runtime.GLTFConverter.GLTFConverter { CreateInstanceOverride = model.CreateSchemaInstance };
                         var gltf = converter.ConvertRuntimeToSchema(model.GLTF, data);
 
                         // Makes last second changes to the model that bypass the runtime layer
