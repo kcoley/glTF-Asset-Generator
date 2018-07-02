@@ -89,7 +89,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 }
                 if (runtimeMeshPrimitive.Colors != null && runtimeMeshPrimitive.Colors.Any())
                 {
-                    var colorVertexAttribute = new ColorVertexAttribute(runtimeMeshPrimitive.Colors, runtimeMeshPrimitive.ColorComponentType, runtimeMeshPrimitive.ColorType);
+                    var colorVertexAttribute = new ColorVertexAttribute(this, runtimeMeshPrimitive.Colors, runtimeMeshPrimitive.ColorComponentType, runtimeMeshPrimitive.ColorType);
 
                     var colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
                     var colorAccessorType = runtimeMeshPrimitive.ColorType == MeshPrimitive.ColorTypeEnum.VEC3 ? glTFLoader.Schema.Accessor.TypeEnum.VEC3 : glTFLoader.Schema.Accessor.TypeEnum.VEC4;
@@ -97,8 +97,9 @@ namespace AssetGenerator.Runtime.GLTFConverter
 
                     // Create BufferView
                     int byteOffset = (int)geometryData.Writer.BaseStream.Position;
-
-                    int byteLength = WriteColors(runtimeMeshPrimitive, 0, runtimeMeshPrimitive.Colors.Count() - 1, geometryData);
+                    colorVertexAttribute.Write(geometryData);
+                    int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
+ 
                     int? byteStride = null;
                     switch (runtimeMeshPrimitive.ColorComponentType)
                     {

@@ -15,8 +15,10 @@ namespace AssetGenerator.Runtime.GLTFConverter
             private readonly glTFLoader.Schema.Accessor.TypeEnum Type;
             private readonly bool normalized;
             private readonly IEnumerable<Vector4> Colors;
-            public ColorVertexAttribute(IEnumerable<Vector4> colors, MeshPrimitive.ColorComponentTypeEnum componentType, MeshPrimitive.ColorTypeEnum colorType)
+            private readonly GLTFConverter GLTFConverter;
+            public ColorVertexAttribute(GLTFConverter glTFConverter, IEnumerable<Vector4> colors, MeshPrimitive.ColorComponentTypeEnum componentType, MeshPrimitive.ColorTypeEnum colorType)
             {
+                GLTFConverter = glTFConverter;
                 Colors = colors;
                 switch (componentType)
                 {
@@ -57,20 +59,25 @@ namespace AssetGenerator.Runtime.GLTFConverter
                         Colors.ForEach(color =>
                         {
                             WriteFloatColor(color, geometryData);
+                            GLTFConverter.Align(geometryData, (int)geometryData.Writer.BaseStream.Position, 4);
                         });
-                        geometryData.Writer.Write(Colors);
+                        
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
                         Colors.ForEach(color =>
                         {
                             geometryData.Writer.Write(color.ConvertToNormalizedByteArray(Type));
+                            GLTFConverter.Align(geometryData, (int)geometryData.Writer.BaseStream.Position, 4);
                         });
+                        
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
                         Colors.ForEach(color =>
                         {
                             geometryData.Writer.Write(color.ConvertToNormalizedUShortArray(Type));
+                            GLTFConverter.Align(geometryData, (int)geometryData.Writer.BaseStream.Position, 4);
                         });
+                        
                         break;
                     default:
                         throw new NotSupportedException($"The color component type {ComponentType} is not supported!");
