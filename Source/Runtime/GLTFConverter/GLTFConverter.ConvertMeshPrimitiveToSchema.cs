@@ -19,7 +19,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
             var attributes = new Dictionary<string, int>();
             if (runtimeMeshPrimitive.Interleave != null && runtimeMeshPrimitive.Interleave == true)
             {
-                attributes = InterleaveMeshPrimitiveAttributes(runtimeMeshPrimitive, geometryData, bufferIndex);
+                attributes = InterleaveMeshPrimitiveAttributes(runtimeMeshPrimitive, geometryData);
             }
             else
             {
@@ -139,7 +139,6 @@ namespace AssetGenerator.Runtime.GLTFConverter
                         ++i;
                     }
                 }
-
             }
             if (runtimeMeshPrimitive.Indices != null && runtimeMeshPrimitive.Indices.Any())
             {
