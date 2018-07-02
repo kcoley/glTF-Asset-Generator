@@ -95,22 +95,9 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
  
                     int? byteStride = null;
-                    switch (runtimeMeshPrimitive.ColorComponentType)
+                    if (runtimeMeshPrimitive.ColorComponentType != MeshPrimitive.ColorComponentTypeEnum.FLOAT && vectorSize == 3)
                     {
-                        case MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_UBYTE:
-                            if (vectorSize == 3)
-                            {
-                                byteStride = 4;
-                            }
-                            break;
-                        case MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_USHORT:
-                            if (vectorSize == 3)
-                            {
-                                byteStride = 8;
-                            }
-                            break;
-                        default: //Default to ColorComponentTypeEnum.FLOAT:
-                            break;
+                        byteStride = runtimeMeshPrimitive.ColorComponentType == MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_UBYTE ? 4 : 8;
                     }
 
                     var bufferView = CreateBufferView(bufferIndex, "Colors", byteLength, byteOffset, byteStride);
@@ -136,17 +123,9 @@ namespace AssetGenerator.Runtime.GLTFConverter
                         // we normalize only if the texture coord accessor type is not float
                         //bool normalized = runtimeMeshPrimitive.TextureCoordsComponentType != MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT;
                         int? byteStride = null;
-                        switch (runtimeMeshPrimitive.TextureCoordsComponentType)
+                        if (runtimeMeshPrimitive.TextureCoordsComponentType == MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_UBYTE)
                         {
-                            case MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT:
-                                break;
-                            case MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_UBYTE:
-                                byteStride = 4;
-                                break;
-                            case MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_USHORT:
-                                break;
-                            default: // Default to Float
-                                break;
+                            byteStride = 4;
                         }
 
                         var bufferView = CreateBufferView(bufferIndex, "Texture Coords " + i, byteLength, byteOffset, byteStride);
@@ -220,12 +199,10 @@ namespace AssetGenerator.Runtime.GLTFConverter
             if (runtimeMeshPrimitive.VertexJointWeights != null && runtimeMeshPrimitive.VertexJointWeights.Any())
             {
                 var weightsVertexAttribute = new WeightsVertexAttribute(runtimeMeshPrimitive.VertexJointWeights, runtimeMeshPrimitive.WeightComponentType);
+
                 int weightByteOffset = (int)geometryData.Writer.BaseStream.Position;
-                // get weights
                 weightsVertexAttribute.Write(geometryData);
                 var weightByteLength = (int)geometryData.Writer.BaseStream.Position - weightByteOffset;
-
-                var weights = runtimeMeshPrimitive.VertexJointWeights.Select(jointWeight => jointWeight.Select(jWeight => jWeight.Weight));
 
                 var bufferView = CreateBufferView(bufferIndex, "weights buffer view", weightByteLength, weightByteOffset, null);
                 bufferViews.Add(bufferView);
