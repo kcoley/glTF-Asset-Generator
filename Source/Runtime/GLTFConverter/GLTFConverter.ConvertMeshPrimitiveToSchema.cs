@@ -90,9 +90,6 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 if (runtimeMeshPrimitive.Colors != null && runtimeMeshPrimitive.Colors.Any())
                 {
                     var colorVertexAttribute = new ColorVertexAttribute(this, runtimeMeshPrimitive.Colors, runtimeMeshPrimitive.ColorComponentType, runtimeMeshPrimitive.ColorType);
-
-                    var colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
-                    var colorAccessorType = runtimeMeshPrimitive.ColorType == MeshPrimitive.ColorTypeEnum.VEC3 ? glTFLoader.Schema.Accessor.TypeEnum.VEC3 : glTFLoader.Schema.Accessor.TypeEnum.VEC4;
                     int vectorSize = runtimeMeshPrimitive.ColorType == MeshPrimitive.ColorTypeEnum.VEC3 ? 3 : 4;
 
                     // Create BufferView
@@ -104,21 +101,18 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     switch (runtimeMeshPrimitive.ColorComponentType)
                     {
                         case MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_UBYTE:
-                            colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
                             if (vectorSize == 3)
                             {
                                 byteStride = 4;
                             }
                             break;
                         case MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_USHORT:
-                            colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
                             if (vectorSize == 3)
                             {
                                 byteStride = 8;
                             }
                             break;
                         default: //Default to ColorComponentTypeEnum.FLOAT:
-                            colorAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
                             break;
                     }
 
@@ -127,16 +121,10 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     int bufferviewIndex = bufferViews.Count() - 1;
 
                     // Create an accessor for the bufferView
-                    // we normalize if the color accessor mode is not set to FLOAT
-                    bool normalized = runtimeMeshPrimitive.ColorComponentType != MeshPrimitive.ColorComponentTypeEnum.FLOAT;
-                    var accessor = CreateAccessor(bufferviewIndex, 0, colorAccessorComponentType, runtimeMeshPrimitive.Colors.Count(), "Colors Accessor", null, null, colorAccessorType, normalized);
+                    var accessor = CreateAccessor(bufferviewIndex, 0, colorVertexAttribute.GetAccessorComponentType(), runtimeMeshPrimitive.Colors.Count(), "Colors Accessor", null, null, colorVertexAttribute.GetAccessorType(), colorVertexAttribute.IsNormalized());
                     accessors.Add(accessor);
                     attributes.Add("COLOR_0", accessors.Count() - 1);
-                    if (normalized)
-                    {
-                        // Pad any additional bytes if byteLength is not a multiple of 4
-                        Align(geometryData, byteLength, 4);
-                    }
+
                 }
                 if (runtimeMeshPrimitive.TextureCoordSets != null)
                 {

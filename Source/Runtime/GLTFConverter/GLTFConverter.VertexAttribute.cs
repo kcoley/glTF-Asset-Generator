@@ -8,17 +8,10 @@ namespace AssetGenerator.Runtime.GLTFConverter
     {
         private abstract class VertexAttribute
         {
-            private readonly glTFLoader.Schema.Accessor.ComponentTypeEnum AccessorComponentType;
-            private readonly glTFLoader.Schema.Accessor.TypeEnum AccessorType;
+            public abstract glTFLoader.Schema.Accessor.ComponentTypeEnum GetAccessorComponentType();
 
-            public virtual glTFLoader.Schema.Accessor.ComponentTypeEnum GetAccessorComponentType()
-            {
-                return AccessorComponentType;
-            }
-            public virtual glTFLoader.Schema.Accessor.TypeEnum GetAccessorType()
-            {
-                return AccessorType;
-            }
+            public abstract glTFLoader.Schema.Accessor.TypeEnum GetAccessorType();
+
             public virtual bool IsNormalized()
             {
                 return false;

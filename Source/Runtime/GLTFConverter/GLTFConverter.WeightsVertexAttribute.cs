@@ -1,4 +1,5 @@
-﻿using System;
+﻿using glTFLoader.Schema;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -176,6 +177,15 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     default:
                         throw new NotSupportedException($"The weights component type {WeightsComponentType} is not supported!");
                 }
+            }
+            public override Accessor.ComponentTypeEnum GetAccessorComponentType()
+            {
+                return WeightsComponentType;
+            }
+
+            public override Accessor.TypeEnum GetAccessorType()
+            {
+                return glTFLoader.Schema.Accessor.TypeEnum.VEC4;
             }
         }
     }

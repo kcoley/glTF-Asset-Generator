@@ -1,4 +1,5 @@
 ﻿using AssetGenerator.Runtime.ExtensionMethods;
+using glTFLoader.Schema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,6 +93,16 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     default:
                         throw new NotSupportedException($"The texture coordinate componet type {ComponentType} is not supported!");
                 }
+            }
+
+            public override Accessor.ComponentTypeEnum GetAccessorComponentType()
+            {
+                return ComponentType;
+            }
+
+            public override Accessor.TypeEnum GetAccessorType()
+            {
+                return glTFLoader.Schema.Accessor.TypeEnum.VEC2;
             }
         }
     }

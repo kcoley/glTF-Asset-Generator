@@ -1,4 +1,5 @@
-﻿using System;
+﻿using glTFLoader.Schema;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -27,6 +28,15 @@ namespace AssetGenerator.Runtime.GLTFConverter
             {
                 int index = indices.ElementAt(0);
                 geometryData.Writer.Write(Normals.ElementAt(index));
+            }
+            public override Accessor.ComponentTypeEnum GetAccessorComponentType()
+            {
+                return glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
+            }
+
+            public override Accessor.TypeEnum GetAccessorType()
+            {
+                return glTFLoader.Schema.Accessor.TypeEnum.VEC3;
             }
         }
     }

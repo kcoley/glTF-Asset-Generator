@@ -1,4 +1,5 @@
-﻿using System;
+﻿using glTFLoader.Schema;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -9,9 +10,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
     internal partial class GLTFConverter
     {
         private sealed class TangentVertexAttribute : VertexAttribute
-        {
-            private readonly glTFLoader.Schema.Accessor.ComponentTypeEnum AccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
-            private readonly glTFLoader.Schema.Accessor.TypeEnum AccessorType = glTFLoader.Schema.Accessor.TypeEnum.VEC4;
+        { 
             private readonly IEnumerable<Vector4> Tangents;
             public TangentVertexAttribute(IEnumerable<Vector4> tangents)
             {
@@ -27,6 +26,16 @@ namespace AssetGenerator.Runtime.GLTFConverter
             {
                 int index = indices.ElementAt(0);
                 geometryData.Writer.Write(Tangents.ElementAt(index));
+            }
+
+            public override Accessor.ComponentTypeEnum GetAccessorComponentType()
+            {
+                return glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
+            }
+
+            public override Accessor.TypeEnum GetAccessorType()
+            {
+                return glTFLoader.Schema.Accessor.TypeEnum.VEC4;
             }
         }
     }

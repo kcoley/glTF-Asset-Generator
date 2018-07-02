@@ -1,4 +1,5 @@
 ﻿using AssetGenerator.Runtime.ExtensionMethods;
+using glTFLoader.Schema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,8 @@ namespace AssetGenerator.Runtime.GLTFConverter
     {
         private sealed class ColorVertexAttribute : VertexAttribute
         {
-            private readonly glTFLoader.Schema.Accessor.ComponentTypeEnum ComponentType;
-            private readonly glTFLoader.Schema.Accessor.TypeEnum Type;
+            private readonly glTFLoader.Schema.Accessor.ComponentTypeEnum AccessorComponentType;
+            private readonly glTFLoader.Schema.Accessor.TypeEnum AccessorType;
             private readonly bool normalized;
             private readonly IEnumerable<Vector4> Colors;
             private readonly GLTFConverter GLTFConverter;
@@ -23,21 +24,21 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 switch (componentType)
                 {
                     case MeshPrimitive.ColorComponentTypeEnum.FLOAT:
-                        ComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
+                        AccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
                         normalized = false;
                         break;
                     case MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_UBYTE:
-                        ComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
+                        AccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
                         normalized = true;
                         break;
                     case MeshPrimitive.ColorComponentTypeEnum.NORMALIZED_USHORT:
-                        ComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
+                        AccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
                         normalized = true;
                         break;
                     default:
                         throw new NotSupportedException($"The color component type {componentType} is not supported!");
                 }
-                Type = colorType == MeshPrimitive.ColorTypeEnum.VEC3 ? glTFLoader.Schema.Accessor.TypeEnum.VEC3 : glTFLoader.Schema.Accessor.TypeEnum.VEC4;
+                AccessorType = colorType == MeshPrimitive.ColorTypeEnum.VEC3 ? glTFLoader.Schema.Accessor.TypeEnum.VEC3 : glTFLoader.Schema.Accessor.TypeEnum.VEC4;
             }
             private void WriteFloatColor(Vector4 color, Data geometryData)
             {
@@ -45,7 +46,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 geometryData.Writer.Write(color.Y);
                 geometryData.Writer.Write(color.Z);
 
-                if (Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4)
+                if (AccessorType == glTFLoader.Schema.Accessor.TypeEnum.VEC4)
                 {
                     geometryData.Writer.Write(color.W);
                 }
@@ -53,7 +54,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
 
             public override void Write(Data geometryData)
             {
-                switch (ComponentType)
+                switch (AccessorComponentType)
                 {
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT:
                         Colors.ForEach(color =>
@@ -66,7 +67,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
                         Colors.ForEach(color =>
                         {
-                            geometryData.Writer.Write(color.ConvertToNormalizedByteArray(Type));
+                            geometryData.Writer.Write(color.ConvertToNormalizedByteArray(AccessorType));
                             GLTFConverter.Align(geometryData, (int)geometryData.Writer.BaseStream.Position, 4);
                         });
                         
@@ -74,13 +75,13 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
                         Colors.ForEach(color =>
                         {
-                            geometryData.Writer.Write(color.ConvertToNormalizedUShortArray(Type));
+                            geometryData.Writer.Write(color.ConvertToNormalizedUShortArray(AccessorType));
                             GLTFConverter.Align(geometryData, (int)geometryData.Writer.BaseStream.Position, 4);
                         });
                         
                         break;
                     default:
-                        throw new NotSupportedException($"The color component type {ComponentType} is not supported!");
+                        throw new NotSupportedException($"The color component type {AccessorComponentType} is not supported!");
                 }
             }
             public override bool IsNormalized()
@@ -91,18 +92,28 @@ namespace AssetGenerator.Runtime.GLTFConverter
             public override void Write(Data geometryData, IEnumerable<int> indices)
             {
                 int index = indices.ElementAt(0);
-                switch (ComponentType)
+                switch (AccessorComponentType)
                 {
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT:
                         WriteFloatColor(Colors.ElementAt(index), geometryData);
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
-                        geometryData.Writer.Write(Colors.ElementAt(index).ConvertToNormalizedByteArray(Type));
+                        geometryData.Writer.Write(Colors.ElementAt(index).ConvertToNormalizedByteArray(AccessorType));
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
-                        geometryData.Writer.Write(Colors.ElementAt(index).ConvertToNormalizedUShortArray(Type));
+                        geometryData.Writer.Write(Colors.ElementAt(index).ConvertToNormalizedUShortArray(AccessorType));
                         break;
                 }
+            }
+
+            public override Accessor.ComponentTypeEnum GetAccessorComponentType()
+            {
+                return AccessorComponentType;
+            }
+
+            public override Accessor.TypeEnum GetAccessorType()
+            {
+                return AccessorType;
             }
         }
     }
