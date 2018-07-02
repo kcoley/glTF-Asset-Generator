@@ -12,7 +12,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
             private readonly glTFLoader.Schema.Accessor.ComponentTypeEnum WeightsComponentType;
             private readonly bool WeightsNormalized;
             private readonly IEnumerable<IEnumerable<JointWeight>> VertexJointWeights;
-            public WeightsVertexAttribute(IEnumerable<IEnumerable<JointWeight>> vertexJointWeights, MeshPrimitive.JointComponentTypeEnum jointsComponentType, MeshPrimitive.WeightComponentTypeEnum weightsComponentType)
+            public WeightsVertexAttribute(IEnumerable<IEnumerable<JointWeight>> vertexJointWeights, MeshPrimitive.WeightComponentTypeEnum weightsComponentType)
             {
                 VertexJointWeights = vertexJointWeights;
 
@@ -118,9 +118,8 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 return WeightsNormalized;
             }
 
-            public override void Write(Data geometryData, IEnumerable<int> indices)
+            public override void Write(Data geometryData, int index)
             {
-                int vertexIndex = indices.ElementAt(0);
                 switch (WeightsComponentType)
                 {
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT:
@@ -138,7 +137,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                                 data.Writer.Write(0.0f);
                             }
                         }
-                        WriteToBufferInterleaved(geometryData, vertexIndex, writeFloatWeights, writeFloatPadding);
+                        WriteToBufferInterleaved(geometryData, index, writeFloatWeights, writeFloatPadding);
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
                         void writeByteWeights(IEnumerable<JointWeight> vertexWeights, Data gData)
@@ -155,7 +154,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                                 data.Writer.Write(Convert.ToByte(0));
                             }
                         }
-                        WriteToBufferInterleaved(geometryData, vertexIndex, writeByteWeights, writeBytePadding);
+                        WriteToBufferInterleaved(geometryData, index, writeByteWeights, writeBytePadding);
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
                         void writeShortWeights(IEnumerable<JointWeight> vertexWeights, Data gData)
@@ -172,7 +171,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                                 data.Writer.Write(Convert.ToUInt16(0));
                             }
                         }
-                        WriteToBufferInterleaved(geometryData, vertexIndex, writeShortWeights, writeShortPadding);
+                        WriteToBufferInterleaved(geometryData, index, writeShortWeights, writeShortPadding);
                         break;
                     default:
                         throw new NotSupportedException($"The weights component type {WeightsComponentType} is not supported!");

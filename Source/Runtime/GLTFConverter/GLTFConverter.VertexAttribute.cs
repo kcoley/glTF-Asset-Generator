@@ -17,7 +17,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 return false;
             }
             public abstract void Write(Data geometryData);
-            public abstract void Write(Data geometryData, IEnumerable<int> indices);
+            public abstract void Write(Data geometryData, int index);
         }
     }
 }

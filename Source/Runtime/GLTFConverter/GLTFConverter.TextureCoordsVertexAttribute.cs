@@ -11,24 +11,26 @@ namespace AssetGenerator.Runtime.GLTFConverter
     {
         private sealed class TextureCoordsVertexAttribute : VertexAttribute
         {
-            private readonly glTFLoader.Schema.Accessor.ComponentTypeEnum ComponentType;
+            private readonly Accessor.ComponentTypeEnum ComponentType;
             private readonly bool normalized;
-            private readonly IEnumerable<IEnumerable<Vector2>> TextureCoordSets;
-            public TextureCoordsVertexAttribute(IEnumerable<IEnumerable<Vector2>> textureCoordSets, MeshPrimitive.TextureCoordsComponentTypeEnum componentType)
+            private readonly IEnumerable<Vector2> TextureCoordSet;
+            private readonly GLTFConverter GLTFConverter;
+            public TextureCoordsVertexAttribute(GLTFConverter glTFConverter, IEnumerable<Vector2> textureCoordSets, MeshPrimitive.TextureCoordsComponentTypeEnum componentType)
             {
-                TextureCoordSets = textureCoordSets;
+                GLTFConverter = glTFConverter;
+                TextureCoordSet = textureCoordSets;
                 switch (componentType)
                 {
                     case MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT:
-                        ComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
+                        ComponentType = Accessor.ComponentTypeEnum.FLOAT;
                         normalized = false;
                         break;
                     case MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_UBYTE:
-                        ComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
+                        ComponentType = Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
                         normalized = true;
                         break;
                     case MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_USHORT:
-                        ComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
+                        ComponentType = Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
                         normalized = true;
                         break;
                     default:
@@ -40,30 +42,23 @@ namespace AssetGenerator.Runtime.GLTFConverter
             {
                 switch (ComponentType)
                 {
-                    case glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT:
-                        TextureCoordSets.ForEach(textureCoord =>
+                    case Accessor.ComponentTypeEnum.FLOAT:
+                        TextureCoordSet.ForEach(textureCoord =>
                         {
                             geometryData.Writer.Write(textureCoord);
                         });
                         break;
-                    case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
-                        TextureCoordSets.ForEach(textureCoordSet =>
+                    case Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
+                        TextureCoordSet.ForEach(textureCoord =>
                         {
-                            textureCoordSet.ForEach(textureCoord =>
-                            {
-                                geometryData.Writer.Write(textureCoord.ConvertToNormalizedByteArray());
-                            });
-
-                        });
+                            geometryData.Writer.Write(textureCoord.ConvertToNormalizedByteArray());
+                            GLTFConverter.Align(geometryData, (int)geometryData.Writer.BaseStream.Position, 4);
+                        });  
                         break;
-                    case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
-                        TextureCoordSets.ForEach(textureCoordSet =>
+                    case Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
+                        TextureCoordSet.ForEach(textureCoord =>
                         {
-                            textureCoordSet.ForEach(textureCoord =>
-                            {
                                 geometryData.Writer.Write(textureCoord.ConvertToNormalizedUShortArray());
-                            });
-
                         });
                         break;
                     default:
@@ -75,20 +70,18 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 return normalized;
             }
 
-            public override void Write(Data geometryData, IEnumerable<int> indices)
+            public override void Write(Data geometryData, int index)
             {
-                int textureCoordSetIndex = indices.ElementAt(0);
-                int textureCoordIndex = indices.ElementAt(1);
                 switch (ComponentType)
                 {
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT:
-                        geometryData.Writer.Write(TextureCoordSets.ElementAt(textureCoordSetIndex).ElementAt(textureCoordIndex));
+                        geometryData.Writer.Write(TextureCoordSet.ElementAt(index));
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE:
-                        geometryData.Writer.Write(TextureCoordSets.ElementAt(textureCoordSetIndex).ElementAt(textureCoordIndex).ConvertToNormalizedByteArray());
+                        geometryData.Writer.Write(TextureCoordSet.ElementAt(index).ConvertToNormalizedByteArray());
                         break;
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT:
-                        geometryData.Writer.Write(TextureCoordSets.ElementAt(textureCoordSetIndex).ElementAt(textureCoordIndex).ConvertToNormalizedUShortArray());
+                        geometryData.Writer.Write(TextureCoordSet.ElementAt(index).ConvertToNormalizedUShortArray());
                         break;
                     default:
                         throw new NotSupportedException($"The texture coordinate componet type {ComponentType} is not supported!");

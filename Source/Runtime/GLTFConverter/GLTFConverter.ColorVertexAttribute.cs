@@ -89,9 +89,8 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 return normalized;
             }
 
-            public override void Write(Data geometryData, IEnumerable<int> indices)
+            public override void Write(Data geometryData, int index)
             {
-                int index = indices.ElementAt(0);
                 switch (AccessorComponentType)
                 {
                     case glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT:

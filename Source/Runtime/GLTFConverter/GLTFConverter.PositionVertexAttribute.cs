@@ -24,9 +24,8 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 geometryData.Writer.Write(Positions);
             }
 
-            public override void Write(Data geometryData, IEnumerable<int> indices)
+            public override void Write(Data geometryData, int index)
             {
-                int index = indices.ElementAt(0);
                 geometryData.Writer.Write(Positions.ElementAt(index));
             }
             public override Accessor.ComponentTypeEnum GetAccessorComponentType()

@@ -124,35 +124,32 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     var accessor = CreateAccessor(bufferviewIndex, 0, colorVertexAttribute.GetAccessorComponentType(), runtimeMeshPrimitive.Colors.Count(), "Colors Accessor", null, null, colorVertexAttribute.GetAccessorType(), colorVertexAttribute.IsNormalized());
                     accessors.Add(accessor);
                     attributes.Add("COLOR_0", accessors.Count() - 1);
-
                 }
                 if (runtimeMeshPrimitive.TextureCoordSets != null)
                 {
                     int i = 0;
                     foreach (var textureCoordSet in runtimeMeshPrimitive.TextureCoordSets)
                     {
+                        var textureCoordVertexAttribute = new TextureCoordsVertexAttribute(this, textureCoordSet, runtimeMeshPrimitive.TextureCoordsComponentType);
                         int byteOffset = (int)geometryData.Writer.BaseStream.Position;
-                        int byteLength = WriteTextureCoords(runtimeMeshPrimitive, textureCoordSet, 0, runtimeMeshPrimitive.TextureCoordSets.ElementAt(i).Count() - 1, geometryData);
+                        textureCoordVertexAttribute.Write(geometryData);
+                        int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
 
                         glTFLoader.Schema.Accessor accessor;
                         glTFLoader.Schema.Accessor.ComponentTypeEnum accessorComponentType;
-                        // we normalize only if the texture cood accessor type is not float
-                        bool normalized = runtimeMeshPrimitive.TextureCoordsComponentType != MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT;
+                        // we normalize only if the texture coord accessor type is not float
+                        //bool normalized = runtimeMeshPrimitive.TextureCoordsComponentType != MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT;
                         int? byteStride = null;
                         switch (runtimeMeshPrimitive.TextureCoordsComponentType)
                         {
                             case MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT:
-                                accessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
                                 break;
                             case MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_UBYTE:
-                                accessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
                                 byteStride = 4;
                                 break;
                             case MeshPrimitive.TextureCoordsComponentTypeEnum.NORMALIZED_USHORT:
-                                accessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
                                 break;
                             default: // Default to Float
-                                accessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
                                 break;
                         }
 
@@ -160,16 +157,9 @@ namespace AssetGenerator.Runtime.GLTFConverter
                         bufferViews.Add(bufferView);
                         int bufferviewIndex = bufferViews.Count() - 1;
                         // Create Accessor
-                        accessor = CreateAccessor(bufferviewIndex, 0, accessorComponentType, textureCoordSet.Count(), "UV Accessor " + i, null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC2, normalized);
-
+                        accessor = CreateAccessor(bufferviewIndex, 0, textureCoordVertexAttribute.GetAccessorComponentType(), textureCoordSet.Count(), "UV Accessor " + i, null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC2, textureCoordVertexAttribute.IsNormalized());
                         accessors.Add(accessor);
 
-                        // Add any additional bytes if the data is normalized
-                        if (normalized)
-                        {
-                            // Pad any additional bytes if byteLength is not a multiple of 4
-                            Align(geometryData, byteLength, 4);
-                        }
                         attributes.Add("TEXCOORD_" + i, accessors.Count() - 1);
                         ++i;
                     }
@@ -233,122 +223,32 @@ namespace AssetGenerator.Runtime.GLTFConverter
             }
             if (runtimeMeshPrimitive.VertexJointWeights != null && runtimeMeshPrimitive.VertexJointWeights.Any())
             {
+                var weightsVertexAttribute = new WeightsVertexAttribute(runtimeMeshPrimitive.VertexJointWeights, runtimeMeshPrimitive.WeightComponentType);
                 int weightByteOffset = (int)geometryData.Writer.BaseStream.Position;
                 // get weights
-                var weights = runtimeMeshPrimitive.VertexJointWeights.Select(jointWeight => jointWeight.Select(jWeight => jWeight.Weight));
-
-                glTFLoader.Schema.Accessor.ComponentTypeEnum weightComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
-                foreach (var vertexJointWeights in runtimeMeshPrimitive.VertexJointWeights)
-                {
-                    var vertexJointWeightsCount = vertexJointWeights.Count();
-                    if (vertexJointWeightsCount > 4)
-                    {
-                        throw new Exception("The number of weights per vertex cannot be greater than four!");
-                    }
-                    else
-                    {
-                        switch (runtimeMeshPrimitive.WeightComponentType)
-                        {
-                            case MeshPrimitive.WeightComponentTypeEnum.FLOAT:
-                                weightComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT;
-                                foreach (var jointWeight in vertexJointWeights)
-                                {
-                                    geometryData.Writer.Write(jointWeight.Weight);
-                                }
-                                for (int i = vertexJointWeightsCount; i < 4; ++i)
-                                {
-                                    geometryData.Writer.Write(0.0f);
-                                }
-                                break;
-                            case MeshPrimitive.WeightComponentTypeEnum.NORMALIZED_UNSIGNED_BYTE:
-                                weightComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_BYTE;
-                                foreach (var jointWeight in vertexJointWeights)
-                                {
-                                    geometryData.Writer.Write(Convert.ToByte(Math.Round(jointWeight.Weight * byte.MaxValue)));
-                                }
-                                for (int i = vertexJointWeightsCount; i < 4; ++i)
-                                {
-                                    geometryData.Writer.Write(Convert.ToByte(0));
-                                }
-                                break;
-                            case MeshPrimitive.WeightComponentTypeEnum.NORMALIZED_UNSIGNED_SHORT:
-                                weightComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
-                                foreach (var jointWeight in vertexJointWeights)
-                                {
-                                    geometryData.Writer.Write(Convert.ToUInt16(Math.Round(jointWeight.Weight * ushort.MaxValue)));
-                                }
-                                for (int i = vertexJointWeightsCount; i < 4; ++i)
-                                {
-                                    geometryData.Writer.Write(Convert.ToUInt16(0));
-                                }
-                                break;
-                            default:
-                                throw new NotImplementedException("The weight component type is not supported!");
-                        }
-                    }
-                }
-
+                weightsVertexAttribute.Write(geometryData);
                 var weightByteLength = (int)geometryData.Writer.BaseStream.Position - weightByteOffset;
+
+                var weights = runtimeMeshPrimitive.VertexJointWeights.Select(jointWeight => jointWeight.Select(jWeight => jWeight.Weight));
 
                 var bufferView = CreateBufferView(bufferIndex, "weights buffer view", weightByteLength, weightByteOffset, null);
                 bufferViews.Add(bufferView);
 
-                // Pad any additional bytes if byteLength is not a multiple of 4
-                Align(geometryData, weightByteLength, 4);
-
-                var weightAccessor = CreateAccessor(bufferViews.Count() - 1, 0, weightComponentType, weights.Count(), "weights accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, null);
+                var weightAccessor = CreateAccessor(bufferViews.Count() - 1, 0, weightsVertexAttribute.GetAccessorComponentType(), runtimeMeshPrimitive.VertexJointWeights.Count(), "weights accessor", null, null, weightsVertexAttribute.GetAccessorType(), null);
                 accessors.Add(weightAccessor);
                 attributes.Add("WEIGHTS_0", accessors.Count() - 1);
 
-                glTFLoader.Schema.Accessor.ComponentTypeEnum jointAccessorComponentType = glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT;
-                var jointByteOffset = (int)geometryData.Writer.BaseStream.Position;
+                var jointsVertexAttribute = new JointsVertexAttribute(this, runtimeMeshPrimitive.VertexJointWeights, runtimeMeshPrimitive.JointComponentType);
 
-                foreach (var vertexJointWeights in runtimeMeshPrimitive.VertexJointWeights)
-                {
-                    var vertexJointWeightsCount = vertexJointWeights.Count();
-                    if (vertexJointWeightsCount > 4)
-                    {
-                        throw new Exception("The number of joints per vertex cannot be greater than four!");
-                    }
-                    else
-                    {
-                        switch (runtimeMeshPrimitive.JointComponentType)
-                        {
-                            case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_BYTE:
-                                foreach (var jointWeight in vertexJointWeights)
-                                {
-                                    geometryData.Writer.Write(Convert.ToUInt16(runtimeNode.Skin.SkinJoints.IndexOf(jointWeight.Joint)));
-                                }
-                                for (int i = vertexJointWeightsCount; i < 4; ++i)
-                                {
-                                    geometryData.Writer.Write(Convert.ToUInt16(0));
-                                }
-                                break;
-                            case MeshPrimitive.JointComponentTypeEnum.UNSIGNED_SHORT:
-                                foreach (var jointWeight in vertexJointWeights)
-                                {
-                                    geometryData.Writer.Write(Convert.ToByte(runtimeNode.Skin.SkinJoints.IndexOf(jointWeight.Joint)));
-                                }
-                                for (int i = vertexJointWeightsCount; i < 4; ++i)
-                                {
-                                    geometryData.Writer.Write(Convert.ToByte(0));
-                                }
-                                break;
-                            default:
-                                throw new NotImplementedException("The joint component type is not supported!");
-                        }
-                    }
-                }
+                int jointByteOffset = (int)geometryData.Writer.BaseStream.Position;
+                jointsVertexAttribute.Write(geometryData);
+                int jointByteLength = (int)geometryData.Writer.BaseStream.Position - jointByteOffset;
+               
+                var jointsBufferView = CreateBufferView(bufferIndex, "joint indices buffer view", jointByteLength, jointByteOffset, null);
+                bufferViews.Add(jointsBufferView);
 
-                int jointIndicesByteLength = (int)geometryData.Writer.BaseStream.Position - jointByteOffset;
-                // Pad any additional bytes if byteLength is not a multiple of 4
-                Align(geometryData, jointIndicesByteLength, 4);
-
-                var jointIndicesBufferView = CreateBufferView(bufferIndex, "joint indices buffer view", jointIndicesByteLength, jointByteOffset, null);
-                bufferViews.Add(jointIndicesBufferView);
-
-                var jointIndicesAccessor = CreateAccessor(bufferViews.Count() - 1, 0, jointAccessorComponentType, runtimeMeshPrimitive.VertexJointWeights.Count(), "joint indices accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, false);
-                accessors.Add(jointIndicesAccessor);
+                var jointsAccessor = CreateAccessor(bufferViews.Count() - 1, 0, jointsVertexAttribute.GetAccessorComponentType(), runtimeMeshPrimitive.VertexJointWeights.Count(), "joint indices accessor", null, null, jointsVertexAttribute.GetAccessorType(), jointsVertexAttribute.IsNormalized());
+                accessors.Add(jointsAccessor);
                 attributes.Add("JOINTS_0", accessors.Count() - 1);
             }
 
