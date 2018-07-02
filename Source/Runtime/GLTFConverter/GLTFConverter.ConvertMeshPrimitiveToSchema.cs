@@ -26,9 +26,6 @@ namespace AssetGenerator.Runtime.GLTFConverter
                 if (runtimeMeshPrimitive.Positions != null && runtimeMeshPrimitive.Positions.Any())
                 {
                     var positionsVertexAttribute = new PositionVertexAttribute(runtimeMeshPrimitive.Positions);
-                    ;
-                    //Create BufferView for the position
-                    int byteLength = sizeof(float) * 3 * runtimeMeshPrimitive.Positions.Count();
                     float[] min = new float[] { };
                     float[] max = new float[] { };
 
@@ -36,7 +33,10 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     Vector3[] minMaxPositions = GetMinMaxPositions(runtimeMeshPrimitive);
                     min = new[] { minMaxPositions[0].X, minMaxPositions[0].Y, minMaxPositions[0].Z };
                     max = new[] { minMaxPositions[1].X, minMaxPositions[1].Y, minMaxPositions[1].Z };
+
                     int byteOffset = (int)geometryData.Writer.BaseStream.Position;
+                    positionsVertexAttribute.Write(geometryData);
+                    int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
 
                     var bufferView = CreateBufferView(bufferIndex, "Positions", byteLength, byteOffset, null);
                     bufferViews.Add(bufferView);
@@ -46,45 +46,42 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     var accessor = CreateAccessor(bufferviewIndex, 0, glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT, runtimeMeshPrimitive.Positions.Count(), "Positions Accessor", max, min, glTFLoader.Schema.Accessor.TypeEnum.VEC3, null);
 
                     accessors.Add(accessor);
-                    positionsVertexAttribute.Write(geometryData);
                     attributes.Add("POSITION", accessors.Count() - 1);
                 }
                 if (runtimeMeshPrimitive.Normals != null && runtimeMeshPrimitive.Normals.Any())
                 {
                     var normalsVertexAttribute = new NormalVertexAttribute(runtimeMeshPrimitive.Normals);
                     // Create BufferView
-                    int byteLength = sizeof(float) * 3 * runtimeMeshPrimitive.Normals.Count();
                     // Create a bufferView
                     int byteOffset = (int)geometryData.Writer.BaseStream.Position;
-                    var bufferView = CreateBufferView(bufferIndex, "Normals", byteLength, byteOffset, null);
+                    normalsVertexAttribute.Write(geometryData);
+                    int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
 
+                    var bufferView = CreateBufferView(bufferIndex, "Normals", byteLength, byteOffset, null);
                     bufferViews.Add(bufferView);
                     int bufferviewIndex = bufferViews.Count() - 1;
 
                     // Create an accessor for the bufferView
-                    var accessor = CreateAccessor(bufferviewIndex, 0, glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT, runtimeMeshPrimitive.Normals.Count(), "Normals Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC3, null);
-
+                    var accessor = CreateAccessor(bufferviewIndex, 0, normalsVertexAttribute.GetAccessorComponentType(), runtimeMeshPrimitive.Normals.Count(), "Normals Accessor", null, null, normalsVertexAttribute.GetAccessorType(), null);
                     accessors.Add(accessor);
-                    normalsVertexAttribute.Write(geometryData);
                     attributes.Add("NORMAL", accessors.Count() - 1);
                 }
                 if (runtimeMeshPrimitive.Tangents != null && runtimeMeshPrimitive.Tangents.Any())
                 {
                     var tangentVertexAttribute = new TangentVertexAttribute(runtimeMeshPrimitive.Tangents);
-                    // Create BufferView
-                    int byteLength = sizeof(float) * 4 * runtimeMeshPrimitive.Tangents.Count();
                     // Create a bufferView
                     int byteOffset = (int)geometryData.Writer.BaseStream.Position;
+                    tangentVertexAttribute.Write(geometryData);
+                    int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
+
                     var bufferView = CreateBufferView(bufferIndex, "Tangents", byteLength, byteOffset, null);
-
-
                     bufferViews.Add(bufferView);
                     int bufferviewIndex = bufferViews.Count() - 1;
 
                     // Create an accessor for the bufferView
-                    var accessor = CreateAccessor(bufferviewIndex, 0, glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT, runtimeMeshPrimitive.Tangents.Count(), "Tangents Accessor", null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC4, null);
+                    var accessor = CreateAccessor(bufferviewIndex, 0, tangentVertexAttribute.GetAccessorComponentType(), runtimeMeshPrimitive.Tangents.Count(), "Tangents Accessor", null, null, tangentVertexAttribute.GetAccessorType(), null);
                     accessors.Add(accessor);
-                    tangentVertexAttribute.Write(geometryData);
+                    
                     attributes.Add("TANGENT", accessors.Count() - 1);
                 }
                 if (runtimeMeshPrimitive.Colors != null && runtimeMeshPrimitive.Colors.Any())
@@ -131,12 +128,11 @@ namespace AssetGenerator.Runtime.GLTFConverter
                     foreach (var textureCoordSet in runtimeMeshPrimitive.TextureCoordSets)
                     {
                         var textureCoordVertexAttribute = new TextureCoordsVertexAttribute(this, textureCoordSet, runtimeMeshPrimitive.TextureCoordsComponentType);
+
                         int byteOffset = (int)geometryData.Writer.BaseStream.Position;
                         textureCoordVertexAttribute.Write(geometryData);
                         int byteLength = (int)geometryData.Writer.BaseStream.Position - byteOffset;
 
-                        glTFLoader.Schema.Accessor accessor;
-                        glTFLoader.Schema.Accessor.ComponentTypeEnum accessorComponentType;
                         // we normalize only if the texture coord accessor type is not float
                         //bool normalized = runtimeMeshPrimitive.TextureCoordsComponentType != MeshPrimitive.TextureCoordsComponentTypeEnum.FLOAT;
                         int? byteStride = null;
@@ -157,7 +153,7 @@ namespace AssetGenerator.Runtime.GLTFConverter
                         bufferViews.Add(bufferView);
                         int bufferviewIndex = bufferViews.Count() - 1;
                         // Create Accessor
-                        accessor = CreateAccessor(bufferviewIndex, 0, textureCoordVertexAttribute.GetAccessorComponentType(), textureCoordSet.Count(), "UV Accessor " + i, null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC2, textureCoordVertexAttribute.IsNormalized());
+                        var accessor = CreateAccessor(bufferviewIndex, 0, textureCoordVertexAttribute.GetAccessorComponentType(), textureCoordSet.Count(), "UV Accessor " + i, null, null, glTFLoader.Schema.Accessor.TypeEnum.VEC2, textureCoordVertexAttribute.IsNormalized());
                         accessors.Add(accessor);
 
                         attributes.Add("TEXCOORD_" + i, accessors.Count() - 1);
