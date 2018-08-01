@@ -17,7 +17,8 @@ namespace AssetGenerator
             Model CreateModel(Action<List<Property>, Runtime.GLTF, IEnumerable<Runtime.Node>> setProperties)
             {
                 var properties = new List<Property>();
-                var planeSkinScene = Scene.CreatePlaneWithSkin();
+              //  var planeSkinScene = Scene.CreatePlaneWithSkin();
+                var planeSkinScene = Scene.CreatePlaneWith5Joints();
 
                 // Apply the common properties to the gltf.
 
@@ -34,9 +35,15 @@ namespace AssetGenerator
                     GLTF = gltf
                 };
             }
+            
 
             void AnimateWithRotation(Runtime.GLTF gltf)
             {
+                var rootJoint = gltf.Scenes.First().Nodes.ElementAt(1);
+                var rootMidJoint = rootJoint.Children.First();
+                var midJoint = rootMidJoint.Children.First();
+                var midTopJoint = midJoint.Children.First();
+                var topJoint = midTopJoint.Children.First();
                 gltf.Animations = new List<Runtime.Animation>
                 {
                     new Runtime.Animation
@@ -47,7 +54,31 @@ namespace AssetGenerator
                             {
                                 Target = new Runtime.AnimationChannelTarget
                                 {
-                                    Node = gltf.Scenes.First().Nodes.ElementAt(1).Children.First(),
+                                    Node = rootMidJoint,
+                                    Path = Runtime.AnimationChannelTarget.PathEnum.ROTATION,
+                                }
+                            },
+                            new Runtime.AnimationChannel
+                            {
+                                Target = new Runtime.AnimationChannelTarget
+                                {
+                                    Node = midJoint,
+                                    Path = Runtime.AnimationChannelTarget.PathEnum.ROTATION,
+                                }
+                            },
+                            new Runtime.AnimationChannel
+                            {
+                                Target = new Runtime.AnimationChannelTarget
+                                {
+                                    Node = midTopJoint,
+                                    Path = Runtime.AnimationChannelTarget.PathEnum.ROTATION,
+                                }
+                            },
+                            new Runtime.AnimationChannel
+                            {
+                                Target = new Runtime.AnimationChannelTarget
+                                {
+                                    Node = topJoint,
                                     Path = Runtime.AnimationChannelTarget.PathEnum.ROTATION,
                                 }
                             }
@@ -55,19 +86,54 @@ namespace AssetGenerator
                     }
                 };
                 var quarterTurn = (FloatMath.Pi / 2);
+                var keyFrames = new[]
+                {
+                    0.0f,
+                    1.0f,
+                    2.0f,
+                };
+                var keyFrameValues45Degrees = new[]
+                {
+                    Quaternion.Identity,
+                    Quaternion.CreateFromYawPitchRoll(0.0f, quarterTurn/2, 0.0f),
+                    Quaternion.Identity,
+                };
+                var keyFrameValues90Degrees = new[]
+                {
+                    Quaternion.Identity,
+                    Quaternion.CreateFromYawPitchRoll(0.0f, quarterTurn, 0.0f),
+                    Quaternion.Identity,
+                };
+                var keyFrameValuesNeg90Degrees = new[]
+                {
+                    Quaternion.Identity,
+                    Quaternion.CreateFromYawPitchRoll(0.0f, -quarterTurn, 0.0f),
+                    Quaternion.Identity,
+                };
+
+                var keyFrameValuesNeutral = new[]
+                {
+                    Quaternion.Identity,
+                    Quaternion.Identity,
+                    Quaternion.Identity,
+                };
+
                 gltf.Animations.First().Channels.First().Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
-                    new[]
-                    {
-                        0.0f,
-                        1.0f,
-                        2.0f,
-                    },
-                    new[]
-                    {
-                        Quaternion.Identity,
-                        Quaternion.CreateFromYawPitchRoll(0.0f, quarterTurn, 0.0f),
-                        Quaternion.Identity,
-                    });
+                    keyFrames,
+                    keyFrameValues45Degrees
+                );
+                gltf.Animations.First().Channels.ElementAt(1).Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                    keyFrames,
+                    keyFrameValuesNeutral
+                );
+                gltf.Animations.First().Channels.ElementAt(2).Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                    keyFrames,
+                    keyFrameValuesNeutral
+                );
+                gltf.Animations.First().Channels.ElementAt(3).Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                    keyFrames,
+                    keyFrameValuesNeutral
+                );
             }
 
             this.Models = new List<Model>
