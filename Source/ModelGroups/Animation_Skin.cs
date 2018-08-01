@@ -92,48 +92,51 @@ namespace AssetGenerator
                     1.0f,
                     2.0f,
                 };
-                var keyFrameValues45Degrees = new[]
+            var neutralSampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                keyFrames,
+                 new[]
+                {
+                    Quaternion.Identity,
+                    Quaternion.Identity,
+                    Quaternion.Identity,
+                }
+            );
+
+            var rotate45Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                keyFrames,
+                 new[]
                 {
                     Quaternion.Identity,
                     Quaternion.CreateFromYawPitchRoll(0.0f, quarterTurn/2, 0.0f),
                     Quaternion.Identity,
-                };
-                var keyFrameValues90Degrees = new[]
+                }
+            );
+
+            var rotate90Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                keyFrames,
+                 new[]
                 {
                     Quaternion.Identity,
                     Quaternion.CreateFromYawPitchRoll(0.0f, quarterTurn, 0.0f),
                     Quaternion.Identity,
-                };
-                var keyFrameValuesNeg90Degrees = new[]
+                }
+            );
+            var rotateNeg90Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
+                keyFrames,
+                 new[]
                 {
                     Quaternion.Identity,
                     Quaternion.CreateFromYawPitchRoll(0.0f, -quarterTurn, 0.0f),
                     Quaternion.Identity,
-                };
+                }
+            );
 
-                var keyFrameValuesNeutral = new[]
-                {
-                    Quaternion.Identity,
-                    Quaternion.Identity,
-                    Quaternion.Identity,
-                };
+            
 
-                gltf.Animations.First().Channels.First().Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
-                    keyFrames,
-                    keyFrameValues45Degrees
-                );
-                gltf.Animations.First().Channels.ElementAt(1).Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
-                    keyFrames,
-                    keyFrameValuesNeutral
-                );
-                gltf.Animations.First().Channels.ElementAt(2).Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
-                    keyFrames,
-                    keyFrameValuesNeutral
-                );
-                gltf.Animations.First().Channels.ElementAt(3).Sampler = new Runtime.LinearAnimationSampler<Quaternion>(
-                    keyFrames,
-                    keyFrameValuesNeutral
-                );
+                gltf.Animations.First().Channels.First().Sampler = rotate45Sampler;
+                gltf.Animations.First().Channels.ElementAt(1).Sampler = rotateNeg90Sampler;
+                gltf.Animations.First().Channels.ElementAt(2).Sampler = rotate90Sampler;
+                gltf.Animations.First().Channels.ElementAt(3).Sampler = rotateNeg90Sampler;
             }
 
             this.Models = new List<Model>

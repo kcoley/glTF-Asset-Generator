@@ -261,18 +261,18 @@ namespace AssetGenerator
                                         },
                                         Colors = new List<Vector4>()
                                         {
-                                            new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
-                                            new Vector4(0.2f, 0.2f, 0.2f, 0.2f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+                                            new Vector4(0.2f, 0.2f, 0.2f, 1.0f),
                                         },
                                     }
                                 }
@@ -286,21 +286,25 @@ namespace AssetGenerator
                                 new Runtime.Node
                                 {
                                     Name = "rootMidJoint",
+                                    Translation = new Vector3(0, 0.2f, 0), 
                                     Children = new []
                                     {
                                         new Runtime.Node
                                         {
                                             Name = "midJoint",
+                                            Translation = new Vector3(0, 0.2f, 0), 
                                             Children = new []
                                             {
                                                 new Runtime.Node
                                                 {
                                                     Name = "midTopJoint",
+                                                    Translation = new Vector3(0, 0.2f, 0), 
                                                     Children = new []
                                                     {
                                                         new Runtime.Node
                                                         {
                                                             Name = "topJoint",
+                                                            Translation = new Vector3(0, 0.2f, 0), 
                                                         }
                                                     }
                                                 }
@@ -332,28 +336,51 @@ namespace AssetGenerator
                 ),
                 new Runtime.SkinJoint
                 (
-                    inverseBindMatrix: identityMatrix,
+                    inverseBindMatrix: new Matrix4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,-0.2f,0,1),
                     node: rootMidJoint
                 ),
                 new Runtime.SkinJoint
                 (
-                    inverseBindMatrix: identityMatrix,
+                    inverseBindMatrix: new Matrix4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,-0.4f,0,1),
                     node: midJoint
                 ),
                 new Runtime.SkinJoint
                 (
-                    inverseBindMatrix: identityMatrix,
+                    inverseBindMatrix: new Matrix4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,-0.6f,0,1),
                     node: midTopJoint
                 ),
                 new Runtime.SkinJoint
                 (
-                    inverseBindMatrix: identityMatrix,
+                    inverseBindMatrix: new Matrix4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,-0.8f,0,1),
                     node: topJoint
                 )
             };
 
         skinNode.Mesh.MeshPrimitives.First().VertexJointWeights = new[]
                 {
+                    new[] // vertex 0
+                    {
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.First(), // rootJoint
+                            Weight = 1,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Weight = 0,
+                        },
+                    },
                     new[] // vertex 1
                     {
                         new Runtime.JointWeight
@@ -381,22 +408,22 @@ namespace AssetGenerator
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 1,
-                        },
-                        new Runtime.JointWeight
-                        {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 0,
+                            Weight = 1.0f,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0,
+                            Weight = 0.0f,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
                             Weight = 0,
                         },
                     },
@@ -404,22 +431,22 @@ namespace AssetGenerator
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
                             Weight = 1.0f,
                         },
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
                             Weight = 0.0f,
                         },
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
                             Weight = 0,
                         },
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
                             Weight = 0,
                         },
                     },
@@ -427,9 +454,73 @@ namespace AssetGenerator
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
+                            Weight = 0.0f,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
+                            Weight = 1,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
+                            Weight = 0,
+                        },
+                    },
+                    new[] // vertex 5
+                    {
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
+                            Weight = 1,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
+                            Weight = 0,
+                        },
+                    },
+                    new[] // vertex 6
+                    {
+                       new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
+                            Weight = 0.0f,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
                             Weight = 1.0f,
                         },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
+                            Weight = 0,
+                        },
+                    },
+                    new[] // vertex 7
+                    {
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(1),
@@ -443,75 +534,11 @@ namespace AssetGenerator
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 0,
-                        },
-                    },
-                    new[] // vertex 5
-                    {
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
+                            Weight = 1.0f,
                         },
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 1,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 0,
-                        },
-                    },
-                    new[] // vertex 6
-                    {
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 1,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 0,
-                        },
-                    },
-                    new[] // vertex 7
-                    {
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 0.5f,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0.5f,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
                             Weight = 0,
                         },
                     },
@@ -519,80 +546,75 @@ namespace AssetGenerator
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 0.5f,
+                            Weight = 0.0f,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0.5f,
+                            Weight = 0.0f,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 0,
+                            Weight = 0.0f,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
+                            Weight = 1.0f,
                         },
                     },
                     new[] // vertex 9
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 0,
+                            Weight = 0.0f,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0.4f,
+                            Weight = 0.0f,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 0.6f,
+                            Weight = 0.0f,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
+                            Weight = 1.0f,
                         },
                     },
                     new[] // vertex 10
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(1),
                             Weight = 0,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0.4f,
+                            Weight = 0,
                         },
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 0.6f,
+                            Weight = 0,
+                        },
+                        new Runtime.JointWeight
+                        {
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
+                            Weight = 1,
                         },
                     },
                     new[] // vertex 11
                     {
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.First(),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(1),
                             Weight = 0,
                         },
@@ -604,29 +626,11 @@ namespace AssetGenerator
                         new Runtime.JointWeight
                         {
                             Joint = skinNode.Skin.SkinJoints.ElementAt(3),
-                            Weight = 1,
-                        },
-                    },
-                    new[] // vertex 12
-                    {
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.First(),
                             Weight = 0,
                         },
                         new Runtime.JointWeight
                         {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(1),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(2),
-                            Weight = 0,
-                        },
-                        new Runtime.JointWeight
-                        {
-                            Joint = skinNode.Skin.SkinJoints.ElementAt(3),
+                            Joint = skinNode.Skin.SkinJoints.ElementAt(4),
                             Weight = 1,
                         },
                     },
