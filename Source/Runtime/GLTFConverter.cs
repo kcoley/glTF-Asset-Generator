@@ -26,6 +26,9 @@ namespace AssetGenerator.Runtime
         private List<glTFLoader.Schema.Skin> skins = new List<glTFLoader.Schema.Skin>();
 
         private Dictionary<Node, int> nodeToIndexCache = new Dictionary<Node, int>();
+        private Dictionary<Texture, TextureIndices> textureToTextureIndicesCache = new Dictionary<Texture, TextureIndices>();
+        private Dictionary<Image, int> imageToIndexCache = new Dictionary<Image, int>();
+        private Dictionary<Mesh, glTFLoader.Schema.Mesh> meshToSchemaCache = new Dictionary<Mesh, glTFLoader.Schema.Mesh>();
         private enum AttributeEnum { POSITION, NORMAL, TANGENT, COLOR, TEXCOORDS_0, TEXCOORDS_1, JOINTS_0, WEIGHTS_0 };
 
         /// <summary>
@@ -215,6 +218,11 @@ namespace AssetGenerator.Runtime
         /// <returns>Returns the indicies of the texture and the texture coordinate as an array of two integers if created.  Can also return null if the index is not defined. (</returns>
         private TextureIndices AddTexture(Texture runtimeTexture)
         {
+            if (this.textureToTextureIndicesCache.TryGetValue(runtimeTexture, out TextureIndices textureIndices))
+            {
+                return textureIndices;
+            }
+
             var indices = new List<int>();
             int? samplerIndex = null;
             int? imageIndex = null;
@@ -319,12 +327,14 @@ namespace AssetGenerator.Runtime
                 }
             }
 
-            TextureIndices textureIndices = new TextureIndices
+            textureIndices = new TextureIndices
             {
                 SamplerIndex = samplerIndex,
                 ImageIndex = imageIndex,
                 TextureCoordIndex = textureCoordIndex
             };
+
+            textureToTextureIndicesCache.Add(runtimeTexture, textureIndices);
 
             return textureIndices;
         }
@@ -622,8 +632,12 @@ namespace AssetGenerator.Runtime
         /// </summary>
         private glTFLoader.Schema.Mesh ConvertMeshToSchema(Node runtimeNode, GLTF gltf, glTFLoader.Schema.Buffer buffer, Data geometryData, int bufferIndex)
         {
+            if (this.meshToSchemaCache.TryGetValue(runtimeNode.Mesh, out glTFLoader.Schema.Mesh schemaMesh))
+            {
+                return schemaMesh;
+            }
             var runtimeMesh = runtimeNode.Mesh;
-            var schemaMesh = CreateInstance<glTFLoader.Schema.Mesh>();
+            schemaMesh = CreateInstance<glTFLoader.Schema.Mesh>();
             var primitives = new List<glTFLoader.Schema.MeshPrimitive>(runtimeMesh.MeshPrimitives.Count());
             var weights = new List<float>();
             // Loops through each wrapped mesh primitive within the mesh and converts them to mesh primitives, as well as updating the
